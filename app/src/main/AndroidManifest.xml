@@ -14,13 +14,7 @@
 
         tools:targetApi="31"><!--  android:theme="@style/Theme.MarksApp"-->
         <activity
-            android:name=".MainActivity"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
+            android:name=".MainActivity">
         </activity>
         <activity android:name=".LoginActivity">
 
@@ -28,8 +22,13 @@
         <activity android:name=".RegisterActivity">
 
         </activity>
-        <activity android:name=".SplashActivity">
+        <activity android:name=".SplashActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
 
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
         </activity>
         <activity android:name=".MainActivity2">
 
