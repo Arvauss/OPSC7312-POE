@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#e5e6e4"
+    android:orientation="vertical"
+    tools:context=".RegisterActivity">
+
+    <EditText
+        android:id="@+id/passwordEditTxt2"
+        android:layout_width="300dp"
+        android:layout_height="50dp"
+        android:layout_alignBottom="@+id/usernameEditTxt"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="30dp"
+        android:layout_marginBottom="-137dp"
+        android:drawableRight="@drawable/ic_baseline_lock_24"
+        android:ems="10"
+        android:hint="Confirm Password"
+        android:inputType="textPassword" />
+
+    <ImageView
+        android:id="@+id/regLogo"
+        android:layout_width="217dp"
+        android:layout_height="200dp"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="30dp"
+        android:src="@mipmap/logo" />
+
+    <!--android:background=...-->
+
+
+    <!--TODO: make button change when clicked/mouse hover-->
+
+    <TextView
+        android:id="@+id/registerText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/regLogo"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="40dp"
+        android:layout_marginBottom="-49dp"
+        android:text="Register"
+        android:textColor="@color/black"
+        android:textSize="35dp"
+        android:textStyle="bold" />
+
+    <EditText
+        android:id="@+id/usernameEditTxt"
+        android:layout_width="300dp"
+        android:layout_height="50dp"
+        android:layout_alignBottom="@+id/registerText"
+        android:layout_centerInParent="true"
+        android:layout_marginTop="30dp"
+        android:layout_marginBottom="-119dp"
+        android:drawableRight="@drawable/ic_baseline_email_24"
+        android:ems="10"
+        android:hint="Email" />
+
+    <EditText
+        android:id="@+id/passwordEditTxt"
+        android:layout_width="300dp"
+        android:layout_height="50dp"
+        android:layout_alignBottom="@+id/usernameEditTxt"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="30dp"
+        android:layout_marginBottom="-71dp"
+        android:drawableRight="@drawable/ic_baseline_lock_24"
+        android:ems="10"
+        android:hint="Password"
+        android:inputType="textPassword" />
+
+    <Button
+        android:id="@+id/regBtn"
+        android:layout_width="250dp"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/passwordEditTxt"
+        android:layout_alignParentLeft="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginLeft="89dp"
+        android:layout_marginBottom="-131dp"
+        android:backgroundTint="@color/black"
+        android:text="REGISTER"
+        android:textColor="@color/white"
+        android:textSize="18dp" />
+
+    <TextView
+        android:id="@+id/loginOption"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginEnd="184dp"
+        android:layout_marginBottom="82dp"
+        android:clickable="true"
+        android:minHeight="48dp"
+        android:text="Login"
+        android:textColor="@color/pc"
+        android:textSize="15dp" />
+
+    <ProgressBar
+        android:id="@+id/progBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true" />
+
+
+</RelativeLayout>
