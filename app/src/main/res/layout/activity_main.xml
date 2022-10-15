@@ -26,22 +26,22 @@
             android:background="@color/darkblue"
             android:gravity="center"
             android:orientation="vertical"
-            android:padding="10dp"
-            tools:context="com.demotxt.droidsrce.homedashboard.Home">
+            android:padding="10dp">
+            <!--tools:context="com.demotxt.droidsrce.homedashboard.Home"-->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:layout_marginBottom="10dp">
+                android:layout_marginBottom="30dp">
 
                 <ImageView
-                    android:layout_width="200dp"
-                    android:layout_height="200dp"
+                    android:layout_width="100dp"
+                    android:layout_height="100dp"
                     android:layout_gravity="center"
                     android:src="@mipmap/logo_cut" />
 
                 <LinearLayout
-                    android:layout_width="192dp"
+                    android:layout_width="wrap_content"
                     android:layout_height="match_parent"
                     android:layout_gravity="center"
                     android:orientation="vertical">
@@ -94,9 +94,9 @@
                 android:orientation="horizontal">
 
                 <androidx.cardview.widget.CardView
-                    android:id="@+id/bankcardId"
-                    android:layout_width="160dp"
-                    android:layout_height="190dp"
+                    android:id="@+id/mapcardid"
+                    android:layout_width="340dp"
+                    android:layout_height="wrap_content"
                     android:layout_margin="10dp"
                     android:clickable="true"
                     android:foreground="?android:attr/selectableItemBackground">
@@ -106,7 +106,8 @@
                         android:layout_height="match_parent"
                         android:background="@color/pc"
                         android:gravity="center"
-                        android:orientation="vertical">
+                        android:orientation="vertical"
+                        android:padding="5dp">
 
                         <ImageView
                             android:layout_width="64dp"
@@ -119,7 +120,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="10dp"
-                            android:text="Financial"
+                            android:text="Map"
                             android:textColor="@color/white"
                             android:textStyle="bold" />
 
@@ -134,13 +135,13 @@
                             android:layout_height="wrap_content"
                             android:gravity="center"
                             android:padding="5dp"
-                            android:text="Check out banks near you"
+                            android:text="Open Map"
                             android:textColor="@android:color/darker_gray" />
 
                     </LinearLayout>
                 </androidx.cardview.widget.CardView>
 
-                <androidx.cardview.widget.CardView
+                <!--<androidx.cardview.widget.CardView
                     android:layout_width="160dp"
                     android:layout_height="190dp"
                     android:layout_margin="10dp"
@@ -184,7 +185,7 @@
                             android:textColor="@android:color/darker_gray" />
 
                     </LinearLayout>
-                </androidx.cardview.widget.CardView>
+                </androidx.cardview.widget.CardView>-->
 
             </LinearLayout>
 
@@ -197,17 +198,19 @@
 
                 <androidx.cardview.widget.CardView
                     android:layout_width="160dp"
-                    android:layout_height="190dp"
+                    android:layout_height="wrap_content"
                     android:layout_margin="10dp"
                     android:clickable="true"
-                    android:foreground="?android:attr/selectableItemBackground">
+                    android:foreground="?android:attr/selectableItemBackground"
+                    >
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:gravity="center"
                         android:background="@color/pc"
-                        android:orientation="vertical">
+                        android:orientation="vertical"
+                        android:padding="5dp">
 
                         <ImageView
                             android:layout_width="64dp"
@@ -243,7 +246,7 @@
 
                 <androidx.cardview.widget.CardView
                     android:layout_width="160dp"
-                    android:layout_height="190dp"
+                    android:layout_height="wrap_content"
                     android:layout_margin="10dp"
                     android:clickable="true"
                     android:foreground="?android:attr/selectableItemBackground">
@@ -253,7 +256,8 @@
                         android:layout_height="match_parent"
                         android:gravity="center"
                         android:background="@color/pc"
-                        android:orientation="vertical">
+                        android:orientation="vertical"
+                        android:padding="5dp">
 
                         <ImageView
                             android:layout_width="64dp"
