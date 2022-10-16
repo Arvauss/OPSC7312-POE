@@ -94,7 +94,7 @@
                 android:orientation="horizontal">
 
                 <androidx.cardview.widget.CardView
-                    android:id="@+id/mapcardid"
+                    android:id="@+id/Mapcard_id"
                     android:layout_width="340dp"
                     android:layout_height="wrap_content"
                     android:layout_margin="10dp"
@@ -197,6 +197,7 @@
                 android:orientation="horizontal">
 
                 <androidx.cardview.widget.CardView
+                    android:id="@+id/Homecard_id"
                     android:layout_width="160dp"
                     android:layout_height="wrap_content"
                     android:layout_margin="10dp"
@@ -245,6 +246,7 @@
                 </androidx.cardview.widget.CardView>
 
                 <androidx.cardview.widget.CardView
+                    android:id="@+id/Workcard_id"
                     android:layout_width="160dp"
                     android:layout_height="wrap_content"
                     android:layout_margin="10dp"
