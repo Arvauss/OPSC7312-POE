@@ -3,6 +3,7 @@ package com.example.marksapp;
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SwitchCompat;
 import androidx.cardview.widget.CardView;
 import androidx.core.content.ContextCompat;
 
@@ -18,6 +19,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.view.View;
+import android.widget.Switch;
 import android.widget.Toast;
 
 import java.util.Map;
@@ -28,6 +30,7 @@ public class MainActivity extends AppCompatActivity {
     public static boolean isGranted = false;
 
     CardView MapCard, HomeCard, WorkCard;
+    SwitchCompat MeasurementSwitch;
 
     @SuppressLint("MissingPermission")
     @RequiresApi(api = Build.VERSION_CODES.M)
@@ -48,6 +51,7 @@ public class MainActivity extends AppCompatActivity {
         MapCard = (CardView) findViewById(R.id.Mapcard_id);
         HomeCard = (CardView) findViewById(R.id.Homecard_id);
         WorkCard = (CardView) findViewById(R.id.Workcard_id);
+        MeasurementSwitch = (SwitchCompat) findViewById(R.id.SwitchID);
 
         MapCard.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -76,6 +80,20 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(GoToMapWork);
             }
         });
+
+        MeasurementSwitch.setText(MeasurementSwitch.getTextOff());
+        MeasurementSwitch.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (MeasurementSwitch.isChecked()){
+                    MeasurementSwitch.setText(MeasurementSwitch.getTextOn());
+                } else {
+                    MeasurementSwitch.setText(MeasurementSwitch.getTextOff());
+                }
+            }
+        });
+
+
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)

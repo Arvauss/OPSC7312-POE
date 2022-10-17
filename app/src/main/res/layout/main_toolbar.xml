@@ -6,7 +6,8 @@
     android:gravity="center_vertical"
     android:orientation="horizontal"
     android:padding="12dp"
-    android:background="@color/pc">
+    android:background="@color/pc"
+    >
 
     <ImageView
         android:id="@+id/menuButton"
@@ -27,11 +28,14 @@
         android:textSize="20sp"
         android:textStyle="bold" />
 
-    <Switch
+    <androidx.appcompat.widget.SwitchCompat
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:hint="Metric"
-        android:onClick="logout"
         android:textColor="@color/white"
-        tools:text="Metric" />
+        tools:text="Metric"
+        android:textOn="Imperial"
+        android:textOff="Metric"
+        android:id="@+id/SwitchID"
+        android:paddingHorizontal="10dp"
+        android:layout_margin="7dp"/>
 </LinearLayout>

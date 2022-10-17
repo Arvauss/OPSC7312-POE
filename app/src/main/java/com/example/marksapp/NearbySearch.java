@@ -30,13 +30,14 @@ import java.io.IOException;
 
 public class NearbySearch {
 
-    public static boolean isGpsEnabled = false;
+   public static boolean isGpsEnabled = false;
     public static double lat = 0, lng = 0;
     public static PlaceType prefType;
 
+    //Code to obtain list of nearby landmarks (evan, 2020) https://stackoverflow.com/questions/59922561/how-to-find-nearby-places-using-new-places-sdk-for-android
     public PlacesSearchResponse searchResponse(double lat, double lng){
 
-        //TODO: Get pref from database
+        //TODO: Get pref from database, placeholder restaurant
         prefType = PlaceType.RESTAURANT;
 
         GeoApiContext context = new GeoApiContext.Builder().apiKey("AIzaSyALqIxRQNGQ11cUlmUEf4HY7dfQh6wp_9E").build();

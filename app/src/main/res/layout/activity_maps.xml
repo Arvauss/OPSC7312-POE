@@ -6,7 +6,7 @@
     android:orientation="vertical"
     android:weightSum="10">
 
-    <fragment android:id="@+id/location1"
+    <fragment android:id="@+id/destLocation"
         android:layout_height="wrap_content"
         android:layout_width="match_parent"
         android:layout_margin="10dp"

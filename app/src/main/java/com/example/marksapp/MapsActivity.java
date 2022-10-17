@@ -16,13 +16,22 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.FragmentActivity;
 //import com.google.maps.model.LatLng;
 import com.example.marksapp.databinding.ActivityMapsBinding;
+import com.google.android.gms.common.api.Status;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.libraries.places.api.Places;
+import com.google.android.libraries.places.api.model.Place;
+import com.google.android.libraries.places.widget.AutocompleteSupportFragment;
+import com.google.android.libraries.places.widget.listener.PlaceSelectionListener;
 import com.google.maps.model.PlacesSearchResult;
+
+import java.util.Arrays;
+import java.util.List;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
@@ -31,12 +40,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     public static boolean isGpsEnabled = false;
     public static double lat = 0, lng = 0;
-    public static LatLng destLatLng;
+    public static LatLng destLatLng = null;
     public static PlacesSearchResult[] nearbyPlaces;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        Places.initialize(getApplicationContext(), getString(R.string._google_api_key));
 
         binding = ActivityMapsBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
@@ -52,15 +63,29 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             Toast.makeText(this, "No destination yet", Toast.LENGTH_SHORT).show();
         }
 
-
-
-
-
-
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+
+        List<Place.Field> fields = Arrays.asList(Place.Field.ID, Place.Field.ADDRESS, Place.Field.NAME, Place.Field.LAT_LNG);
+        AutocompleteSupportFragment destLocat = (AutocompleteSupportFragment) getSupportFragmentManager().findFragmentById(R.id.destLocation);
+        destLocat.setPlaceFields(fields);
+
+        destLocat.setOnPlaceSelectedListener(new PlaceSelectionListener() {
+            @Override
+            public void onError(@NonNull Status status) {
+                Log.d("123456", "Search onError:  " + status.getStatusMessage());
+            }
+
+            @Override
+            public void onPlaceSelected(@NonNull Place place) {
+                final Place destination = place;
+                destLatLng = destination.getLatLng();
+                mMap.addMarker(new MarkerOptions().position(destLatLng).title("Destination").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
+                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(destLatLng, 14.0f));
+            }
+        });
     }
 
 
@@ -69,10 +94,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         LocationManager lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         mMap = googleMap;
         GetLocation(mMap, lm);
-        nearbyPlaces = new NearbySearch().searchResponse(lat, lng).results;
-        for (PlacesSearchResult place: nearbyPlaces) {
-            Log.d("123456", "onMapReady: " + place.formattedAddress);
-            mMap.addMarker(new MarkerOptions().position(new LatLng(place.geometry.location.lat, place.geometry.location.lng)).title(place.formattedAddress));
+        NearbyPlacesTask task = new NearbyPlacesTask();
+        task.execute(new LatLng(lat, lng));
+
+        if (destLatLng != null){
+
         }
 
     }
@@ -93,8 +119,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     // Toast.makeText(MainActivity.this, "Lat: " + lat + "\tLng: " + lng, Toast.LENGTH_SHORT).show();
                     LatLng curLoc = new LatLng(lat,lng);
                     mMap.addMarker(new MarkerOptions().position(curLoc).title("Current Location"));
-                    mMap.setMinZoomPreference(14.0f);
-                    mMap.moveCamera(CameraUpdateFactory.newLatLng(curLoc));
+                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(curLoc, 14.0f));
 
                     NearbyPlacesTask task = new NearbyPlacesTask();
                     task.execute(curLoc);
@@ -119,6 +144,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
+    //Async task to get list of nearby places, then display them on the map (Android Developers, 2022) https://developer.android.com/reference/android/os/AsyncTask
     class NearbyPlacesTask extends AsyncTask<LatLng, Void, Void>{
 
         @Override
