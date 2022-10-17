@@ -6,8 +6,75 @@
     tools:context=".TripInfoFragment">
 
    <LinearLayout
-       android:layout_width="wrap_content"
-       android:layout_height="wrap_content">
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:orientation="vertical"
+       android:gravity="center_vertical"
+       android:padding="3dp"
+       android:layout_margin="3dp">
+      <LinearLayout
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:orientation="vertical"
+          android:layout_margin="7dp">
+         <LinearLayout
+             android:layout_width="match_parent"
+             android:layout_height="wrap_content"
+             android:orientation="horizontal">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Trip Distance:  "/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="--"
+                android:id="@+id/lblDistance"/>
+         </LinearLayout>
+
+      </LinearLayout>
+
+         <LinearLayout
+             android:layout_width="match_parent"
+             android:layout_height="wrap_content"
+             android:orientation="horizontal"
+             android:layout_margin="7dp">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Trip Duration:  "/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="--:--"
+                android:id="@+id/lblDuration"/>
+         </LinearLayout>
+
+
+      <LinearLayout
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:orientation="horizontal"
+          android:gravity="center_horizontal"
+          android:padding="3dp"
+          android:layout_margin="3dp">
+         <Button
+             android:layout_width="wrap_content"
+             android:layout_height="wrap_content"
+             android:id="@+id/btnTripCancel"
+             android:text="Cancel Trip"
+             android:padding="10dp"
+             android:layout_margin="3dp"
+             />
+         <Button
+             android:layout_width="wrap_content"
+             android:layout_height="wrap_content"
+             android:id="@+id/btnTripComplete"
+             android:text="Complete Trip"
+             android:padding="10dp"
+             android:layout_margin="3dp"/>
+
+      </LinearLayout>
 
    </LinearLayout>
 
