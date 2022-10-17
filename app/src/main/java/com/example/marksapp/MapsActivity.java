@@ -3,6 +3,7 @@ package com.example.marksapp;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -17,19 +18,35 @@ import androidx.fragment.app.FragmentActivity;
 //import com.google.maps.model.LatLng;
 import com.example.marksapp.databinding.ActivityMapsBinding;
 import com.google.android.gms.common.api.Status;
+import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.libraries.places.api.Places;
 import com.google.android.libraries.places.api.model.Place;
 import com.google.android.libraries.places.widget.AutocompleteSupportFragment;
 import com.google.android.libraries.places.widget.listener.PlaceSelectionListener;
+import com.google.maps.DirectionsApi;
+import com.google.maps.DirectionsApiRequest;
+import com.google.maps.GeoApiContext;
+import com.google.maps.errors.ApiException;
+import com.google.maps.model.DirectionsLeg;
+import com.google.maps.model.DirectionsResult;
+import com.google.maps.model.DirectionsRoute;
+import com.google.maps.model.DirectionsStep;
+import com.google.maps.model.Distance;
+import com.google.maps.model.Duration;
+import com.google.maps.model.EncodedPolyline;
 import com.google.maps.model.PlacesSearchResult;
 
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -47,7 +64,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        Places.initialize(getApplicationContext(), getString(R.string._google_api_key));
+        if (!Places.isInitialized()){
+            Places.initialize(getApplicationContext(), getString(R.string._google_api_key));
+        }
+
 
         binding = ActivityMapsBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
@@ -80,31 +100,40 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
             @Override
             public void onPlaceSelected(@NonNull Place place) {
+                mMap.clear();
+                DisplayCurLocation();
                 final Place destination = place;
                 destLatLng = destination.getLatLng();
-                mMap.addMarker(new MarkerOptions().position(destLatLng).title("Destination").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
-                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(destLatLng, 14.0f));
+                // mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(destLatLng, 14.0f));
+
+                GetAndDisplayRoute();
+
+
             }
         });
     }
+
 
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
         LocationManager lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         mMap = googleMap;
-        GetLocation(mMap, lm);
+        mMap.clear();
+        GetLocation(mMap);
+
+
         NearbyPlacesTask task = new NearbyPlacesTask();
         task.execute(new LatLng(lat, lng));
 
-        if (destLatLng != null){
-
-        }
 
     }
+
+
     @SuppressLint("MissingPermission")
-    public void GetLocation(GoogleMap mMap, LocationManager lm){
+    public void GetLocation(GoogleMap mMap){
         //
+        LocationManager lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         isGpsEnabled = lm.isProviderEnabled(LocationManager.GPS_PROVIDER);
         if (!isGpsEnabled)
         {
@@ -117,12 +146,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     lat = location.getLatitude();
                     lng = location.getLongitude();
                     // Toast.makeText(MainActivity.this, "Lat: " + lat + "\tLng: " + lng, Toast.LENGTH_SHORT).show();
-                    LatLng curLoc = new LatLng(lat,lng);
-                    mMap.addMarker(new MarkerOptions().position(curLoc).title("Current Location"));
-                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(curLoc, 14.0f));
-
+                    LatLng curLoc = new LatLng(lat, lng);
                     NearbyPlacesTask task = new NearbyPlacesTask();
                     task.execute(curLoc);
+                    DisplayCurLocation();
 
                 }
                 @Override
@@ -143,6 +170,81 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         }
     }
+    public void DisplayCurLocation(){
+        mMap.clear();
+        LatLng curLoc = new LatLng(lat,lng);
+        mMap.addMarker(new MarkerOptions().position(curLoc).title("Current Location").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)).snippet("Current Location"));
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(curLoc, 14.0f));
+    }
+    public void GetAndDisplayRoute(){
+        mMap.addMarker(new MarkerOptions().position(destLatLng).title("Destination").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
+        List<LatLng> path = new ArrayList<>();
+        GeoApiContext context = new GeoApiContext.Builder().apiKey("AIzaSyALqIxRQNGQ11cUlmUEf4HY7dfQh6wp_9E").build();
+        String startLatLng = lat + "," + lng;
+        String destinationLatLng = destLatLng.latitude + "," + destLatLng.longitude;
+        DirectionsApiRequest req = DirectionsApi.getDirections(context, startLatLng, destinationLatLng);
+        try {
+           // Distance tripLength = null;
+            DirectionsResult res = req.await();
+            if (res.routes !=null && res.routes.length > 0){
+                DirectionsRoute route = res.routes[0];
+                if(route.legs !=null) {
+                    for(int i=0 ; i<route.legs.length; i++){
+                        DirectionsLeg leg = route.legs[i];
+                        Distance tripLength = leg.distance;
+                        Duration tripDuration = leg.duration;
+                        Toast.makeText(this, "Total Trip Distance:   " + tripLength.humanReadable + "   Trip Duration:   " + tripDuration.humanReadable , Toast.LENGTH_SHORT).show();
+                        if(leg.steps !=null){
+                            for (int j=0; j<leg.steps.length; j++){
+                                DirectionsStep step = leg.steps[j];
+                                if (step.steps !=null && step.steps.length >0 ){
+                                    for (int k=0; k<step.steps.length; k++){
+                                        DirectionsStep step1 = step.steps[k];
+                                        EncodedPolyline points1 = step1.polyline;
+                                        if (points1 != null){
+                                            List<com.google.maps.model.LatLng> coords1 = points1.decodePath();
+                                            for(com.google.maps.model.LatLng coord : coords1){
+                                                path.add(new LatLng(coord.lat, coord.lng));
+                                            }
+                                        }
+                                    }
+                                } else {
+                                    EncodedPolyline points = step.polyline;
+                                    if (points !=null){
+                                        List<com.google.maps.model.LatLng> coords = points.decodePath();
+                                        for (com.google.maps.model.LatLng coord: coords){
+                                            path.add(new LatLng(coord.lat, coord.lng));
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+            }
+
+        } catch (IOException | ApiException | InterruptedException e) {
+            e.printStackTrace();
+            Log.e("123456", "onPlaceSelected: ", e);
+        }
+
+        if (path.size() > 0 ){
+            LatLngBounds.Builder b = new LatLngBounds.Builder();
+            b.include(new LatLng(lat, lng));
+            b.include(destLatLng);
+            LatLngBounds bounds = b.build();
+            Log.d("123456", "onPlaceSelected: " + bounds.toString());
+
+            PolylineOptions opts = new PolylineOptions().addAll(path).color(Color.BLUE).width(10);
+            mMap.addPolyline(opts);
+            mMap.getUiSettings().setZoomControlsEnabled(true);
+            CameraUpdate cU = CameraUpdateFactory.newLatLngBounds(bounds, 0);
+            mMap.moveCamera(cU);
+            mMap.animateCamera(cU);
+
+        }
+    }
 
     //Async task to get list of nearby places, then display them on the map (Android Developers, 2022) https://developer.android.com/reference/android/os/AsyncTask
     class NearbyPlacesTask extends AsyncTask<LatLng, Void, Void>{
@@ -158,8 +260,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         protected void onPostExecute(Void p) {
             super.onPostExecute(p);
             for (PlacesSearchResult place: nearbyPlaces) {
-                Log.d("123456", "onMapReady: " + place.formattedAddress);
-                mMap.addMarker(new MarkerOptions().position(new LatLng(place.geometry.location.lat, place.geometry.location.lng)).title(place.formattedAddress));
+                mMap.addMarker(new MarkerOptions().position(new LatLng(place.geometry.location.lat, place.geometry.location.lng)).title(place.name));
             }
 
         }
