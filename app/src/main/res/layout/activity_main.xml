@@ -127,14 +127,14 @@
                         <View
                             android:layout_width="match_parent"
                             android:layout_height="1dp"
-                            android:layout_margin="10dp"
+                            android:layout_margin="3dp"
                             android:background="@color/lightgray" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:gravity="center"
-                            android:padding="5dp"
+                            android:padding="3dp"
                             android:text="Open Map"
                             android:textColor="@android:color/darker_gray" />
 
@@ -231,7 +231,7 @@
                         <View
                             android:layout_width="match_parent"
                             android:layout_height="1dp"
-                            android:layout_margin="10dp"
+                            android:layout_margin="3dp"
                             android:background="@color/lightgray" />
 
                         <TextView
@@ -279,7 +279,7 @@
                         <View
                             android:layout_width="match_parent"
                             android:layout_height="1dp"
-                            android:layout_margin="10dp"
+                            android:layout_margin="3dp"
                             android:background="@color/lightgray" />
 
                         <TextView
