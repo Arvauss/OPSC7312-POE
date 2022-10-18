@@ -55,9 +55,7 @@ public class MainActivity extends AppCompatActivity {
         CheckPermissions();
         InitUI();
 
-
     }
-
 
 
     public void InitUI(){
