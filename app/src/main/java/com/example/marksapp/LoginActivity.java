@@ -102,6 +102,7 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     public void signIn (String email, String password) {
+        // Login  user (Firebase, 2022) https://firebase.google.com/docs/auth/android/start
         Auth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                     @Override

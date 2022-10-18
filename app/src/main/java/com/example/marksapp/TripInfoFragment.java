@@ -11,6 +11,15 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
+
+import java.util.Map;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -62,6 +71,9 @@ public class TripInfoFragment extends Fragment {
         btnCancel = (Button) view.findViewById(R.id.btnTripCancel);
         btnComplete = (Button) view.findViewById(R.id.btnTripComplete);
 
+        btnComplete.setText("Complete");
+        btnCancel.setText("Cancel");
+
         Bundle bundle = this.getArguments();
 
         if (this.getArguments() != null){
@@ -70,12 +82,23 @@ public class TripInfoFragment extends Fragment {
         }
 
 
+
         return view;
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
+        btnComplete.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                MapsActivity.mMap.clear();
+                LatLng curLoc = new LatLng(MapsActivity.lat,MapsActivity.lng);
+                MapsActivity.mMap.addMarker(new MarkerOptions().position(curLoc).title("Current Location").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)).snippet("Current Location"));
+                MapsActivity.mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(curLoc, 14.0f));
+            }
+        });
 
 
     }

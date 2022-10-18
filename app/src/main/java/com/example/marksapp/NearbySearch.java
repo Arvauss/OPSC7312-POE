@@ -85,31 +85,5 @@ public class NearbySearch {
             return request;
         }
     }
-/*    @SuppressLint("MissingPermission")
-    public void GetLocation(LocationManager lm){
-     //   LocationManager lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-            lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 3000, 30, new LocationListener() {
-                @Override
-                public void onLocationChanged(@NonNull Location location) {
-                    lat = location.getLatitude();
-                    lng = location.getLongitude();
-                    // Toast.makeText(MainActivity.this, "Lat: " + lat + "\tLng: " + lng, Toast.LENGTH_SHORT).show();
-                }
-                @Override
-                public void onProviderEnabled(@NonNull String provider) {
 
-                }
-
-                @Override
-                public void onProviderDisabled(@NonNull String provider) {
-
-                }
-
-                @Override
-                public void onStatusChanged(String provider, int status, Bundle extras) {
-
-                }
-            });
-
-        }*/
 }

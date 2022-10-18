@@ -71,13 +71,14 @@
              android:padding="10dp"
              android:layout_marginHorizontal="20dp"
              />
+
          <Button
+             android:id="@+id/btnTripComplete"
              android:layout_width="wrap_content"
              android:layout_height="wrap_content"
-             android:id="@+id/btnTripComplete"
-             android:text="Complete Trip"
+             android:layout_marginHorizontal="15dp"
              android:padding="10dp"
-             android:layout_marginHorizontal="15dp"/>
+             android:text="Complete Trip" />
 
       </LinearLayout>
 

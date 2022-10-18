@@ -98,7 +98,7 @@ public class RegisterActivity extends AppCompatActivity {
         }
 
 
-        // create new user or register new user
+        // create new user or register new user (Firebase, 2022) https://firebase.google.com/docs/auth/android/start
         mAuth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
 
             @Override
@@ -113,6 +113,7 @@ public class RegisterActivity extends AppCompatActivity {
 
                     DatabaseReference reference = FirebaseDatabase.getInstance().getReference("Users");
 
+                    // How to write to firebase (Firebase, 2022) https://firebase.google.com/docs/database/android/read-and-write
                     reference.child(firebaseUser.getUid()).setValue(users).addOnCompleteListener(new OnCompleteListener<Void>() {
                         @Override
                         public void onComplete(@NonNull Task<Void> task) {
