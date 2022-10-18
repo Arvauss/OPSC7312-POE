@@ -11,9 +11,11 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.util.Log;
+import android.view.View;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.widget.SwitchCompat;
 import androidx.fragment.app.FragmentActivity;
 //import com.google.maps.model.LatLng;
 import com.example.marksapp.databinding.ActivityMapsBinding;
@@ -26,12 +28,19 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.libraries.places.api.Places;
 import com.google.android.libraries.places.api.model.Place;
 import com.google.android.libraries.places.widget.AutocompleteSupportFragment;
 import com.google.android.libraries.places.widget.listener.PlaceSelectionListener;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.google.maps.DirectionsApi;
 import com.google.maps.DirectionsApiRequest;
 import com.google.maps.GeoApiContext;
@@ -44,6 +53,7 @@ import com.google.maps.model.Distance;
 import com.google.maps.model.Duration;
 import com.google.maps.model.EncodedPolyline;
 import com.google.maps.model.PlacesSearchResult;
+import com.google.maps.model.Unit;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -60,6 +70,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public static LatLng destLatLng = null;
     public static PlacesSearchResult[] nearbyPlaces;
 
+    SwitchCompat MeasurementSwitch;
+    FirebaseAuth mAuth;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -68,6 +81,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             Places.initialize(getApplicationContext(), getString(R.string._google_api_key));
         }
 
+        mAuth  = FirebaseAuth.getInstance(); //need firebase authentication instance
 
         binding = ActivityMapsBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
@@ -105,12 +119,45 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 final Place destination = place;
                 destLatLng = destination.getLatLng();
                 // mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(destLatLng, 14.0f));
-
                 GetAndDisplayRoute();
 
 
             }
         });
+        MeasurementSwitch = (SwitchCompat) findViewById(R.id.SwitchID);
+        MeasurementSwitch.setText(MeasurementSwitch.getTextOff());
+        MeasurementSwitch.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                FirebaseUser firebaseUser = mAuth.getCurrentUser();
+                DatabaseReference reference = FirebaseDatabase.getInstance().getReference("Users");
+                if (MeasurementSwitch.isChecked()){
+                    MeasurementSwitch.setText(MeasurementSwitch.getTextOn());
+                    Unit pref = Unit.IMPERIAL;
+                    reference.child(firebaseUser.getUid()).child("measurementPref").setValue(Unit.IMPERIAL).addOnCompleteListener(new OnCompleteListener<Void>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Void> task) {
+                            if (task.isSuccessful()){
+                                Toast.makeText(getApplicationContext(), "Measurement preference is now " + MeasurementSwitch.getTextOn(), Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                    });
+                } else {
+                    MeasurementSwitch.setText(MeasurementSwitch.getTextOff());
+                    Unit pref = Unit.METRIC;
+                    reference.child(firebaseUser.getUid()).child("measurementPref").setValue(Unit.METRIC).addOnCompleteListener(new OnCompleteListener<Void>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Void> task) {
+                            if (task.isSuccessful()){
+                                Toast.makeText(getApplicationContext(), "Measurement preference is now " + MeasurementSwitch.getTextOff(), Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                    });
+                }
+            }
+        });
+
+
     }
 
 
@@ -125,6 +172,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         NearbyPlacesTask task = new NearbyPlacesTask();
         task.execute(new LatLng(lat, lng));
+
 
 
     }
@@ -182,7 +230,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         GeoApiContext context = new GeoApiContext.Builder().apiKey("AIzaSyALqIxRQNGQ11cUlmUEf4HY7dfQh6wp_9E").build();
         String startLatLng = lat + "," + lng;
         String destinationLatLng = destLatLng.latitude + "," + destLatLng.longitude;
-        DirectionsApiRequest req = DirectionsApi.getDirections(context, startLatLng, destinationLatLng);
+        DirectionsApiRequest req = DirectionsApi.getDirections(context, startLatLng, destinationLatLng).units(Unit.METRIC);
         try {
            // Distance tripLength = null;
             DirectionsResult res = req.await();
@@ -259,10 +307,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         @Override
         protected void onPostExecute(Void p) {
             super.onPostExecute(p);
-            for (PlacesSearchResult place: nearbyPlaces) {
-                mMap.addMarker(new MarkerOptions().position(new LatLng(place.geometry.location.lat, place.geometry.location.lng)).title(place.name));
+            if (nearbyPlaces != null){
+                for (PlacesSearchResult place: nearbyPlaces) {
+                    mMap.addMarker(new MarkerOptions().position(new LatLng(place.geometry.location.lat, place.geometry.location.lng)).title(place.name));
+                }
             }
-
         }
     }
 

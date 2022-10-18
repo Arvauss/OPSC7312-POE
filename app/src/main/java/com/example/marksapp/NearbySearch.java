@@ -49,7 +49,7 @@ public class NearbySearch {
         try {
             request = PlacesApi.nearbySearchQuery(context, location)
                     .radius(5000)
-                    .rankby(RankBy.PROMINENCE)
+                    .rankby(RankBy.DISTANCE)
                     .language("en")
                     .type(prefType)
                     .await();

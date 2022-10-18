@@ -24,7 +24,8 @@ public class LoginActivity extends AppCompatActivity {
 
     // Declaration of variables (The IIE, 2022)
     EditText Password, Email;
-    Button LoginButton;
+    Button LoginButton, RegisterButton;
+    TextView RegButton;
     private FirebaseAuth Auth;
 
     @Override
@@ -41,7 +42,7 @@ public class LoginActivity extends AppCompatActivity {
         Email = findViewById(R.id.usernameEditTxt);
         Password = findViewById(R.id.passwordEditTxt);
         LoginButton = findViewById(R.id.loginBtn);
-        //"@+id/regOption"
+        RegButton = findViewById(R.id.regOption);
     }
     private void setupListener(){
     LoginButton.setOnClickListener(new View.OnClickListener(){
@@ -56,8 +57,15 @@ public class LoginActivity extends AppCompatActivity {
             }
 
         }
-    });
+        });
+
+    RegButton.setOnClickListener(new View.OnClickListener() {
+        @Override
+        public void onClick(View view) {
+            GoToRegister(view);
         }
+    });
+    }
 
     boolean isEmpty (EditText Username){
         CharSequence str = Username.getText().toString();

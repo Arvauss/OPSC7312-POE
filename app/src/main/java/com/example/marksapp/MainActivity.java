@@ -22,6 +22,15 @@ import android.view.View;
 import android.widget.Switch;
 import android.widget.Toast;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.FirebaseApiNotAvailableException;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.maps.model.Unit;
+
 import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
@@ -32,12 +41,16 @@ public class MainActivity extends AppCompatActivity {
     CardView MapCard, HomeCard, WorkCard;
     SwitchCompat MeasurementSwitch;
 
+    FirebaseAuth mAuth;
+
     @SuppressLint("MissingPermission")
     @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        mAuth  = FirebaseAuth.getInstance(); //need firebase authentication instance
 
         CheckPermissions();
         InitUI();
@@ -85,10 +98,30 @@ public class MainActivity extends AppCompatActivity {
         MeasurementSwitch.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                FirebaseUser firebaseUser = mAuth.getCurrentUser();
+                DatabaseReference reference = FirebaseDatabase.getInstance().getReference("Users");
                 if (MeasurementSwitch.isChecked()){
                     MeasurementSwitch.setText(MeasurementSwitch.getTextOn());
+                    Unit pref = Unit.IMPERIAL;
+                    reference.child(firebaseUser.getUid()).child("measurementPref").setValue(Unit.IMPERIAL).addOnCompleteListener(new OnCompleteListener<Void>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Void> task) {
+                            if (task.isSuccessful()){
+                                Toast.makeText(getApplicationContext(), "Measurement preference is now " + MeasurementSwitch.getTextOn(), Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                    });
                 } else {
                     MeasurementSwitch.setText(MeasurementSwitch.getTextOff());
+                    Unit pref = Unit.METRIC;
+                    reference.child(firebaseUser.getUid()).child("measurementPref").setValue(Unit.METRIC).addOnCompleteListener(new OnCompleteListener<Void>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Void> task) {
+                            if (task.isSuccessful()){
+                                Toast.makeText(getApplicationContext(), "Measurement preference is now " + MeasurementSwitch.getTextOff(), Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                    });
                 }
             }
         });
