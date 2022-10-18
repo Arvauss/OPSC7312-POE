@@ -1,5 +1,6 @@
 package com.example.marksapp;
 
+import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -97,6 +98,14 @@ public class TripInfoFragment extends Fragment {
                 LatLng curLoc = new LatLng(MapsActivity.lat,MapsActivity.lng);
                 MapsActivity.mMap.addMarker(new MarkerOptions().position(curLoc).title("Current Location").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)).snippet("Current Location"));
                 MapsActivity.mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(curLoc, 14.0f));
+            }
+        });
+
+        btnCancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent GoToMain = new Intent(getContext(), MainActivity.class);
+                startActivity(GoToMain);
             }
         });
 
