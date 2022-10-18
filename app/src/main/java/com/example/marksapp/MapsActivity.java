@@ -16,6 +16,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
 import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentManager;
@@ -25,7 +26,9 @@ import com.google.android.gms.common.api.Status;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.OnMapsSdkInitializedCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
@@ -65,7 +68,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
+public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback {
 
     private GoogleMap mMap;
     private ActivityMapsBinding binding;
@@ -82,6 +85,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        //MapsInitializer.initialize(getApplicationContext(), MapsInitializer.Renderer.LATEST, this);
 
         if (!Places.isInitialized()){
             Places.initialize(getApplicationContext(), getString(R.string._google_api_key));
@@ -128,18 +132,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 // mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(destLatLng, 14.0f));
                 GetAndDisplayRoute();
 
-                //Initialises trip info fragment, sends duration & distance to be displayed
-                FragmentManager fragman = getSupportFragmentManager();
-                Bundle bundle = new Bundle();
-                bundle.putString("Duration", tDuration);
-                bundle.putString("Distance", tDistance);
-                TripInfoFragment tif = new TripInfoFragment();
-                tif.setArguments(bundle);
-                if (savedInstanceState == null){
-                    getSupportFragmentManager().beginTransaction()
-                            .setReorderingAllowed(true)
-                            .add(R.id.fragcontainer_id, tif, null). commitNow();
-                }
+
 
             }
         });
@@ -179,12 +172,26 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     }
 
+    public void DisplayTripFrag(){
+        //Initialises trip info fragment, sends duration & distance to be displayed
+        FragmentManager fragman = getSupportFragmentManager();
+        Bundle bundle = new Bundle();
+        bundle.putString("Duration", tDuration);
+        bundle.putString("Distance", tDistance);
+        TripInfoFragment tif = new TripInfoFragment();
+        tif.setArguments(bundle);
 
+            getSupportFragmentManager().beginTransaction()
+                    .setReorderingAllowed(true)
+                    .replace(R.id.fragcontainer_id, tif, null). commitNow();
+
+    }
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
         LocationManager lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         mMap = googleMap;
+
         mMap.clear();
         GetLocation(mMap);
 
@@ -316,9 +323,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     PolylineOptions opts = new PolylineOptions().addAll(path).color(Color.BLUE).width(10);
                     mMap.addPolyline(opts);
                     mMap.getUiSettings().setZoomControlsEnabled(true);
-                    CameraUpdate cU = CameraUpdateFactory.newLatLngBounds(bounds, 0);
-                    mMap.moveCamera(cU);
+                    CameraUpdate cU = CameraUpdateFactory.newLatLngBounds(bounds, 25);
+                  //  mMap.moveCamera(cU);
                     mMap.animateCamera(cU);
+
+                    DisplayTripFrag();
 
                 }
             }
@@ -333,22 +342,27 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     }
 
+
+
     //Async task to get list of nearby places, then display them on the map (Android Developers, 2022) https://developer.android.com/reference/android/os/AsyncTask
     class NearbyPlacesTask extends AsyncTask<LatLng, Void, Void>{
 
         @Override
         protected Void doInBackground(LatLng... latlngs) {
           //  LocationManager lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-            nearbyPlaces = new NearbySearch().searchResponse(latlngs[0].latitude, latlngs[0].longitude).results;
+            nearbyPlaces = new NearbySearch().searchResponse(lat, lng).results;
+            Log.d("123456", "doInBackground: " + lat + lng);
             return null;
         }
 
         @Override
         protected void onPostExecute(Void p) {
             super.onPostExecute(p);
+            Log.d("123456", "onPostExecute: null places");
             if (nearbyPlaces != null){
                 for (PlacesSearchResult place: nearbyPlaces) {
                     mMap.addMarker(new MarkerOptions().position(new LatLng(place.geometry.location.lat, place.geometry.location.lng)).title(place.name));
+                    Log.d("123456", "onPostExecute: " + place.name);
                 }
             }
         }
