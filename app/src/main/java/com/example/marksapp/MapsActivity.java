@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
+import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -16,7 +17,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
 import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentManager;
@@ -26,14 +26,11 @@ import com.google.android.gms.common.api.Status;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.OnMapsSdkInitializedCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
-import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -67,11 +64,13 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback {
 
     private GoogleMap mMap;
     private ActivityMapsBinding binding;
+    public View popup;
 
     public static boolean isGpsEnabled = false;
     public static double lat = 0, lng = 0;
@@ -85,7 +84,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        //MapsInitializer.initialize(getApplicationContext(), MapsInitializer.Renderer.LATEST, this);
 
         if (!Places.isInitialized()){
             Places.initialize(getApplicationContext(), getString(R.string._google_api_key));
@@ -130,6 +128,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 final Place destination = place;
                 destLatLng = destination.getLatLng();
                 // mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(destLatLng, 14.0f));
+
                 GetAndDisplayRoute();
 
 
@@ -191,15 +190,25 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void onMapReady(GoogleMap googleMap) {
         LocationManager lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         mMap = googleMap;
-
         mMap.clear();
         GetLocation(mMap);
 
 
         NearbyPlacesTask task = new NearbyPlacesTask();
         task.execute(new LatLng(lat, lng));
-
-
+        mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+            @Override
+            public boolean onMarkerClick(com.google.android.gms.maps.model.Marker marker) {
+                popup = getLayoutInflater().inflate(R.layout.popup_menu, null);
+                TextView name = popup.findViewById(R.id.popup_locationName);
+                TextView address = popup.findViewById(R.id.popup_locationAddress);
+                name.setText(marker.getTitle());
+                address.setText(marker.getPosition().toString());
+                destLatLng = marker.getPosition();
+                popup.setVisibility(View.VISIBLE);
+                return true;
+            }
+        });
 
     }
 
@@ -306,19 +315,19 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                             }
                         }
 
-                    }
+            }
 
-                } catch (IOException | ApiException | InterruptedException e) {
-                    e.printStackTrace();
-                    Log.e("123456", "onPlaceSelected: ", e);
-                }
+        } catch (IOException | ApiException | InterruptedException e) {
+            e.printStackTrace();
+            Log.e("123456", "onPlaceSelected: ", e);
+        }
 
-                if (path.size() > 0 ){
-                    LatLngBounds.Builder b = new LatLngBounds.Builder();
-                    b.include(new LatLng(lat, lng));
-                    b.include(destLatLng);
-                    LatLngBounds bounds = b.build();
-                    Log.d("123456", "onPlaceSelected: " + bounds.toString());
+        if (path.size() > 0 ){
+            LatLngBounds.Builder b = new LatLngBounds.Builder();
+            b.include(new LatLng(lat, lng));
+            b.include(destLatLng);
+            LatLngBounds bounds = b.build();
+            Log.d("123456", "onPlaceSelected: " + bounds.toString());
 
                     PolylineOptions opts = new PolylineOptions().addAll(path).color(Color.BLUE).width(10);
                     mMap.addPolyline(opts);
@@ -365,8 +374,35 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     Log.d("123456", "onPostExecute: " + place.name);
                 }
             }
+            for (PlacesSearchResult place: nearbyPlaces) {
+                mMap.addMarker(new MarkerOptions().position(new LatLng(place.geometry.location.lat, place.geometry.location.lng)).title(place.name));
+            }
+
         }
     }
-
+// pop up functionality
+    public void closePopUp() {
+        View PopUp = findViewById(R.id.popup_menu);
+        PopUp.setVisibility(View.GONE);
+    }
+    public void getDirections() {
+        View PopUp = findViewById(R.id.popup_menu);
+        PopUp.setVisibility(View.GONE);
+        GetAndDisplayRoute();
+    }
+    public void saveLandmark() {
+        View PopUp = findViewById(R.id.popup_menu);
+        PopUp.setVisibility(View.GONE);
+        LandmarksModel landmarksModel = new LandmarksModel();
+        landmarksModel.setLmName(findViewById(R.id.popup_locationName).toString());
+        landmarksModel.setLmLat(destLatLng.latitude);
+        landmarksModel.setLmLng(destLatLng.longitude);
+        Geocoder geocoder= new Geocoder(getApplicationContext(), Locale.getDefault());
+        try {
+            landmarksModel.setLmAddress(geocoder.getFromLocation(destLatLng.latitude, destLatLng.longitude, 1).get(0).getAddressLine(0));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
 }
