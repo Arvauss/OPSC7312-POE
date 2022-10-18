@@ -98,6 +98,8 @@ public class TripInfoFragment extends Fragment {
                 LatLng curLoc = new LatLng(MapsActivity.lat,MapsActivity.lng);
                 MapsActivity.mMap.addMarker(new MarkerOptions().position(curLoc).title("Current Location").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)).snippet("Current Location"));
                 MapsActivity.mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(curLoc, 14.0f));
+                dist.setText("--");
+                dur.setText("--:--");
             }
         });
 
