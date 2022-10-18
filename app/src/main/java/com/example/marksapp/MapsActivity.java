@@ -12,11 +12,13 @@ import android.os.Bundle;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.widget.SwitchCompat;
 import androidx.fragment.app.FragmentActivity;
+import androidx.fragment.app.FragmentManager;
 //import com.google.maps.model.LatLng;
 import com.example.marksapp.databinding.ActivityMapsBinding;
 import com.google.android.gms.common.api.Status;
@@ -39,8 +41,11 @@ import com.google.android.libraries.places.widget.AutocompleteSupportFragment;
 import com.google.android.libraries.places.widget.listener.PlaceSelectionListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.maps.DirectionsApi;
 import com.google.maps.DirectionsApiRequest;
 import com.google.maps.GeoApiContext;
@@ -69,6 +74,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public static double lat = 0, lng = 0;
     public static LatLng destLatLng = null;
     public static PlacesSearchResult[] nearbyPlaces;
+    public static String tDistance = "", tDuration = "";
 
     SwitchCompat MeasurementSwitch;
     FirebaseAuth mAuth;
@@ -102,6 +108,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
+
         List<Place.Field> fields = Arrays.asList(Place.Field.ID, Place.Field.ADDRESS, Place.Field.NAME, Place.Field.LAT_LNG);
         AutocompleteSupportFragment destLocat = (AutocompleteSupportFragment) getSupportFragmentManager().findFragmentById(R.id.destLocation);
         destLocat.setPlaceFields(fields);
@@ -121,6 +128,18 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 // mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(destLatLng, 14.0f));
                 GetAndDisplayRoute();
 
+                //Initialises trip info fragment, sends duration & distance to be displayed
+                FragmentManager fragman = getSupportFragmentManager();
+                Bundle bundle = new Bundle();
+                bundle.putString("Duration", tDuration);
+                bundle.putString("Distance", tDistance);
+                TripInfoFragment tif = new TripInfoFragment();
+                tif.setArguments(bundle);
+                if (savedInstanceState == null){
+                    getSupportFragmentManager().beginTransaction()
+                            .setReorderingAllowed(true)
+                            .add(R.id.fragcontainer_id, tif, null). commitNow();
+                }
 
             }
         });
@@ -225,73 +244,93 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(curLoc, 14.0f));
     }
     public void GetAndDisplayRoute(){
-        mMap.addMarker(new MarkerOptions().position(destLatLng).title("Destination").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
-        List<LatLng> path = new ArrayList<>();
-        GeoApiContext context = new GeoApiContext.Builder().apiKey("AIzaSyALqIxRQNGQ11cUlmUEf4HY7dfQh6wp_9E").build();
-        String startLatLng = lat + "," + lng;
-        String destinationLatLng = destLatLng.latitude + "," + destLatLng.longitude;
-        DirectionsApiRequest req = DirectionsApi.getDirections(context, startLatLng, destinationLatLng).units(Unit.METRIC);
-        try {
-           // Distance tripLength = null;
-            DirectionsResult res = req.await();
-            if (res.routes !=null && res.routes.length > 0){
-                DirectionsRoute route = res.routes[0];
-                if(route.legs !=null) {
-                    for(int i=0 ; i<route.legs.length; i++){
-                        DirectionsLeg leg = route.legs[i];
-                        Distance tripLength = leg.distance;
-                        Duration tripDuration = leg.duration;
-                        Toast.makeText(this, "Total Trip Distance:   " + tripLength.humanReadable + "   Trip Duration:   " + tripDuration.humanReadable , Toast.LENGTH_SHORT).show();
-                        if(leg.steps !=null){
-                            for (int j=0; j<leg.steps.length; j++){
-                                DirectionsStep step = leg.steps[j];
-                                if (step.steps !=null && step.steps.length >0 ){
-                                    for (int k=0; k<step.steps.length; k++){
-                                        DirectionsStep step1 = step.steps[k];
-                                        EncodedPolyline points1 = step1.polyline;
-                                        if (points1 != null){
-                                            List<com.google.maps.model.LatLng> coords1 = points1.decodePath();
-                                            for(com.google.maps.model.LatLng coord : coords1){
-                                                path.add(new LatLng(coord.lat, coord.lng));
+        FirebaseUser firebaseUser = mAuth.getCurrentUser();
+        DatabaseReference reference = FirebaseDatabase.getInstance().getReference("Users");
+        reference.child(firebaseUser.getUid()).child("measurementPref");
+
+        ValueEventListener userListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                Unit measurement = snapshot.child(firebaseUser.getUid()).child("measurementPref").getValue(Unit.class);
+                mMap.addMarker(new MarkerOptions().position(destLatLng).title("Destination").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
+                List<LatLng> path = new ArrayList<>();
+                GeoApiContext context = new GeoApiContext.Builder().apiKey("AIzaSyALqIxRQNGQ11cUlmUEf4HY7dfQh6wp_9E").build();
+                String startLatLng = lat + "," + lng;
+                String destinationLatLng = destLatLng.latitude + "," + destLatLng.longitude;
+                DirectionsApiRequest req = DirectionsApi.getDirections(context, startLatLng, destinationLatLng).units(measurement);
+                try {
+                    // Distance tripLength = null;
+                    DirectionsResult res = req.await();
+                    if (res.routes !=null && res.routes.length > 0){
+                        DirectionsRoute route = res.routes[0];
+                        if(route.legs !=null) {
+                            for(int i=0 ; i<route.legs.length; i++){
+                                DirectionsLeg leg = route.legs[i];
+                                //Distance tripLength = leg.distance;
+                                tDistance = leg.distance.humanReadable;
+                                tDuration = leg.duration.humanReadable;
+                                // Duration tripDuration = leg.duration;
+                                // Toast.makeText(this, "Total Trip Distance:   " + tripLength.humanReadable + "   Trip Duration:   " + tripDuration.humanReadable , Toast.LENGTH_SHORT).show();
+                                if(leg.steps !=null){
+                                    for (int j=0; j<leg.steps.length; j++){
+                                        DirectionsStep step = leg.steps[j];
+                                        if (step.steps !=null && step.steps.length >0 ){
+                                            for (int k=0; k<step.steps.length; k++){
+                                                DirectionsStep step1 = step.steps[k];
+                                                EncodedPolyline points1 = step1.polyline;
+                                                if (points1 != null){
+                                                    List<com.google.maps.model.LatLng> coords1 = points1.decodePath();
+                                                    for(com.google.maps.model.LatLng coord : coords1){
+                                                        path.add(new LatLng(coord.lat, coord.lng));
+                                                    }
+                                                }
                                             }
-                                        }
-                                    }
-                                } else {
-                                    EncodedPolyline points = step.polyline;
-                                    if (points !=null){
-                                        List<com.google.maps.model.LatLng> coords = points.decodePath();
-                                        for (com.google.maps.model.LatLng coord: coords){
-                                            path.add(new LatLng(coord.lat, coord.lng));
+                                        } else {
+                                            EncodedPolyline points = step.polyline;
+                                            if (points !=null){
+                                                List<com.google.maps.model.LatLng> coords = points.decodePath();
+                                                for (com.google.maps.model.LatLng coord: coords){
+                                                    path.add(new LatLng(coord.lat, coord.lng));
+                                                }
+                                            }
                                         }
                                     }
                                 }
                             }
                         }
+
                     }
+
+                } catch (IOException | ApiException | InterruptedException e) {
+                    e.printStackTrace();
+                    Log.e("123456", "onPlaceSelected: ", e);
                 }
 
+                if (path.size() > 0 ){
+                    LatLngBounds.Builder b = new LatLngBounds.Builder();
+                    b.include(new LatLng(lat, lng));
+                    b.include(destLatLng);
+                    LatLngBounds bounds = b.build();
+                    Log.d("123456", "onPlaceSelected: " + bounds.toString());
+
+                    PolylineOptions opts = new PolylineOptions().addAll(path).color(Color.BLUE).width(10);
+                    mMap.addPolyline(opts);
+                    mMap.getUiSettings().setZoomControlsEnabled(true);
+                    CameraUpdate cU = CameraUpdateFactory.newLatLngBounds(bounds, 0);
+                    mMap.moveCamera(cU);
+                    mMap.animateCamera(cU);
+
+                }
             }
 
-        } catch (IOException | ApiException | InterruptedException e) {
-            e.printStackTrace();
-            Log.e("123456", "onPlaceSelected: ", e);
-        }
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
 
-        if (path.size() > 0 ){
-            LatLngBounds.Builder b = new LatLngBounds.Builder();
-            b.include(new LatLng(lat, lng));
-            b.include(destLatLng);
-            LatLngBounds bounds = b.build();
-            Log.d("123456", "onPlaceSelected: " + bounds.toString());
+            }
+        };
+        reference.addValueEventListener(userListener);
 
-            PolylineOptions opts = new PolylineOptions().addAll(path).color(Color.BLUE).width(10);
-            mMap.addPolyline(opts);
-            mMap.getUiSettings().setZoomControlsEnabled(true);
-            CameraUpdate cU = CameraUpdateFactory.newLatLngBounds(bounds, 0);
-            mMap.moveCamera(cU);
-            mMap.animateCamera(cU);
 
-        }
     }
 
     //Async task to get list of nearby places, then display them on the map (Android Developers, 2022) https://developer.android.com/reference/android/os/AsyncTask
