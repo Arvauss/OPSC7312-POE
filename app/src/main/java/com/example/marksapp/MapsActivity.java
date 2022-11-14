@@ -12,11 +12,14 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
 import androidx.constraintlayout.widget.ConstraintLayout;
@@ -44,6 +47,7 @@ import com.google.android.libraries.places.widget.AutocompleteSupportFragment;
 import com.google.android.libraries.places.widget.listener.PlaceSelectionListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -80,6 +84,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     public static boolean isGpsEnabled = false;
     public static double lat = 0, lng = 0;
     public static LatLng destLatLng = null;
+    public static int mMode = 0;
     public static PlacesSearchResult[] nearbyPlaces;
     public static String tDistance = "", tDuration = "";
 
@@ -108,6 +113,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             Bundle dest = getIntent().getExtras();
             if (!dest.isEmpty()) {
                 destLatLng = new LatLng(dest.getDouble("DestLat"), dest.getDouble("DestLng"));
+                mMode = dest.getInt("Mode");
             } else {
                 destLatLng = null;
             }
@@ -121,10 +127,13 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         mapFragment.getMapAsync(this);
 
 
+        if (mMode != 0){
+            GetAndDisplayRoute();
+        }
+
         List<Place.Field> fields = Arrays.asList(Place.Field.ID, Place.Field.ADDRESS, Place.Field.NAME, Place.Field.LAT_LNG);
         AutocompleteSupportFragment destLocat = (AutocompleteSupportFragment) getSupportFragmentManager().findFragmentById(R.id.destLocation);
         destLocat.setPlaceFields(fields);
-
         destLocat.setOnPlaceSelectedListener(new PlaceSelectionListener() {
             @Override
             public void onError(@NonNull Status status) {
@@ -189,7 +198,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         bundle.putString("Distance", tDistance);
         TripInfoFragment tif = new TripInfoFragment();
         tif.setArguments(bundle);
-
             getSupportFragmentManager().beginTransaction()
                     .setReorderingAllowed(true)
                     .replace(R.id.fragcontainer_id, tif, null). commitNow();
@@ -206,9 +214,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         NearbyPlacesTask task = new NearbyPlacesTask();
         task.execute(new LatLng(lat, lng));
-
-
-
 
 
     }
@@ -263,16 +268,56 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
             @Override
             public boolean onMarkerClick(com.google.android.gms.maps.model.Marker marker) {
-               /* Log.d("123456", "onMarkerClick: in marker");
-                //popup = getLayoutInflater().inflate(R.layout.popup_menu, null);
-                View cl = findViewById(R.id.popup_menu);
+                Log.d("123456", "onMarkerClick: in marker");
+
+                LayoutInflater factory = LayoutInflater.from(getApplicationContext());
+                final View popup = factory.inflate(R.layout.popup_menu, null);
+                final AlertDialog dialog = new AlertDialog.Builder(MapsActivity.this).create();
+
+               // popup = getLayoutInflater().inflate(R.layout.popup_menu, null);
+              //  View cl = findViewById(R.id.popup_menu);
                 TextView name = popup.findViewById(R.id.popup_locationName);
                 TextView address = popup.findViewById(R.id.popup_locationAddress);
+                TextView type = popup.findViewById(R.id.popup_locationType);
                 name.setText(marker.getTitle());
                 address.setText(marker.getPosition().toString());
                 destLatLng = marker.getPosition();
-                cl.setVisibility(View.VISIBLE);*/
-                Toast.makeText(getApplicationContext(), marker.getPosition().toString(), Toast.LENGTH_LONG).show();
+              //  cl.setVisibility(View.VISIBLE);
+                Geocoder geocoder = new Geocoder(getApplicationContext(), Locale.getDefault());
+                try {
+                    String add = geocoder.getFromLocation(destLatLng.latitude, destLatLng.longitude, 1).get(0).getAddressLine(0);
+                    address.setText(add);
+                    type.setText(geocoder.getFromLocation(destLatLng.latitude, destLatLng.longitude, 1).get(0).getFeatureName());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                popup.setVisibility(View.VISIBLE);
+                dialog.setView(popup);
+                dialog.findViewById(R.id.btnPClose).setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        dialog.dismiss();
+                    }
+                });
+                dialog.findViewById(R.id.btnPDirections).setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        GetAndDisplayRoute();
+                        dialog.dismiss();
+                    }
+                });
+                dialog.findViewById(R.id.btnPAddFav).setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        LandmarksModel landmarksModel = new LandmarksModel(marker.getTitle(), findViewById(R.id.popup_locationAddress).toString(), destLatLng);
+                       // DatabaseReference dbRef = FirebaseDatabase.getInstance().getReference().child("Users").child(mAuth.getUid()).child()
+                        dialog.dismiss();
+                    }
+                });
+                dialog.show();
+
+
                 return true;
             }
         });
@@ -403,31 +448,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         }
 
-        // pop up functionality
-        public void closePopUp() {
-            View PopUp = findViewById(R.id.popup_menu);
-            PopUp.setVisibility(View.GONE);
-        }
 
-        public void getDirections() {
-            View PopUp = findViewById(R.id.popup_menu);
-            PopUp.setVisibility(View.GONE);
-            GetAndDisplayRoute();
-        }
-
-        public void saveLandmark() {
-            View PopUp = findViewById(R.id.popup_menu);
-            PopUp.setVisibility(View.GONE);
-            LandmarksModel landmarksModel = new LandmarksModel();
-            landmarksModel.setLmName(findViewById(R.id.popup_locationName).toString());
-            landmarksModel.setLmLat(destLatLng.latitude);
-            landmarksModel.setLmLng(destLatLng.longitude);
-            Geocoder geocoder = new Geocoder(getApplicationContext(), Locale.getDefault());
-            try {
-                landmarksModel.setLmAddress(geocoder.getFromLocation(destLatLng.latitude, destLatLng.longitude, 1).get(0).getAddressLine(0));
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
     }
 }

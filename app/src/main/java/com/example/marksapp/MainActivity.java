@@ -27,10 +27,15 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.FirebaseApiNotAvailableException;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.maps.model.Unit;
 
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
@@ -38,10 +43,16 @@ public class MainActivity extends AppCompatActivity {
 
     public static boolean isGranted = false;
 
+    private static double destLat = 0, destLng = 0;
+
     CardView MapCard, HomeCard, WorkCard;
     SwitchCompat MeasurementSwitch;
 
     FirebaseAuth mAuth;
+    DatabaseReference dbRef;
+    private Users curU;
+    private List<LandmarksModel> favs;
+
 
     @SuppressLint("MissingPermission")
     @RequiresApi(api = Build.VERSION_CODES.M)
@@ -51,6 +62,21 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         mAuth  = FirebaseAuth.getInstance(); //need firebase authentication instance
+        dbRef = FirebaseDatabase.getInstance().getReference();
+
+        dbRef.child("Users").child(mAuth.getUid()).addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                curU = snapshot.getValue(Users.class);
+
+                List<LandmarksModel> favs = curU.getSavedLandmarks();
+
+            }
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
 
         CheckPermissions();
         InitUI();
@@ -74,20 +100,24 @@ public class MainActivity extends AppCompatActivity {
         HomeCard.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                double hlat = 0, hlng = 0;
+                GetDestLatLng(1);
                 Intent GoToMapHome = new Intent(getApplicationContext(), MapsActivity.class);
-                GoToMapHome.putExtra("DestLat", hlat);
-                GoToMapHome.putExtra("DestLng", hlng);
+                GoToMapHome.putExtra("DestLat", destLat);
+                GoToMapHome.putExtra("DestLng", destLng);
+                if (destLat == 0 && destLng == 0)
+                    GoToMapHome.putExtra("Mode", 1);
                 startActivity(GoToMapHome);
             }
         });
         WorkCard.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                double wlat = 0, wlng = 0;
+                GetDestLatLng(2);
                 Intent GoToMapWork = new Intent(getApplicationContext(), MapsActivity.class);
-                GoToMapWork.putExtra("DestLat", wlat);
-                GoToMapWork.putExtra("DestLng", wlng);
+                GoToMapWork.putExtra("DestLat", destLat);
+                GoToMapWork.putExtra("DestLng", destLng);
+                if (destLat == 0 && destLng == 0)
+                    GoToMapWork.putExtra("Mode", 2);
                 startActivity(GoToMapWork);
             }
         });
@@ -125,6 +155,31 @@ public class MainActivity extends AppCompatActivity {
         });
 
 
+    }
+
+    private void GetDestLatLng(int code) {
+        if (!favs.isEmpty()){
+            loop: for (LandmarksModel lm : favs){
+                switch (code) {
+                    case 1:
+                        if (lm.getLmName().equals("Home")){
+                            destLat = lm.getLmLat();
+                            destLng = lm.getLmLng();
+                            break loop;
+                        }
+                        break;
+                    case 2:
+                        if (lm.getLmName().equals("Work")){
+                            destLat = lm.getLmLat();
+                            destLng = lm.getLmLng();
+                            break loop;
+                        }
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)

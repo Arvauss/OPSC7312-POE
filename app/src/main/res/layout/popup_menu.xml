@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/popup_menu"
-    android:background="#37686868"
+    android:background="#ffffffff"
     android:visibility="gone">
 
     <LinearLayout
@@ -32,7 +32,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
-            android:layout_marginBottom="20dp"
+            android:layout_marginBottom="10dp"
             android:text="LocationName"
             android:textColor="@color/white"
             android:textStyle="bold" />
@@ -40,7 +40,15 @@
             android:id="@+id/popup_locationAddress"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="30dp"
+            android:layout_marginBottom="10dp"
+            android:text="Address"
+            android:textColor="@color/white"
+            android:textStyle="bold" />
+        <TextView
+            android:id="@+id/popup_locationType"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
             android:text="Address"
             android:textColor="@color/white"
             android:textStyle="bold" />
@@ -52,7 +60,7 @@
 
 
 
-        <Button
+        <Button android:id="@+id/btnPAddFav"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:color="@android:color/darker_gray"
@@ -60,14 +68,14 @@
             android:padding="4dp"
             android:text="Add to Favourites" />
 
-        <Button
+        <Button android:id="@+id/btnPDirections"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:color="@android:color/darker_gray"
             android:gravity="center"
             android:padding="4dp"
             android:text="get directions" />
-        <Button
+        <Button android:id="@+id/btnPClose"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:color="@android:color/darker_gray"
