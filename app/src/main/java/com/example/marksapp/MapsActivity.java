@@ -14,6 +14,7 @@ import android.provider.Settings;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -25,6 +26,7 @@ import androidx.appcompat.widget.SwitchCompat;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 //import com.google.maps.model.LatLng;
 import com.example.marksapp.databinding.ActivityMapsBinding;
 import com.google.android.gms.common.api.Status;
@@ -218,6 +220,20 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     }
 
+    @Override
+    protected void onPause(){
+        super.onPause();
+
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        if (mMap == null){
+            ((SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map)).getMapAsync(this);
+        }
+    }
 
     @SuppressLint("MissingPermission")
     public void GetLocation(GoogleMap mMap){
@@ -270,19 +286,16 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             public boolean onMarkerClick(com.google.android.gms.maps.model.Marker marker) {
                 Log.d("123456", "onMarkerClick: in marker");
 
-                LayoutInflater factory = LayoutInflater.from(getApplicationContext());
+                LayoutInflater factory = LayoutInflater.from(MapsActivity.this);
                 final View popup = factory.inflate(R.layout.popup_menu, null);
                 final AlertDialog dialog = new AlertDialog.Builder(MapsActivity.this).create();
 
-               // popup = getLayoutInflater().inflate(R.layout.popup_menu, null);
-              //  View cl = findViewById(R.id.popup_menu);
                 TextView name = popup.findViewById(R.id.popup_locationName);
                 TextView address = popup.findViewById(R.id.popup_locationAddress);
                 TextView type = popup.findViewById(R.id.popup_locationType);
                 name.setText(marker.getTitle());
                 address.setText(marker.getPosition().toString());
                 destLatLng = marker.getPosition();
-              //  cl.setVisibility(View.VISIBLE);
                 Geocoder geocoder = new Geocoder(getApplicationContext(), Locale.getDefault());
                 try {
                     String add = geocoder.getFromLocation(destLatLng.latitude, destLatLng.longitude, 1).get(0).getAddressLine(0);
@@ -294,20 +307,23 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                 popup.setVisibility(View.VISIBLE);
                 dialog.setView(popup);
-                dialog.findViewById(R.id.btnPClose).setOnClickListener(new View.OnClickListener() {
+
+                Button close = popup.findViewById(R.id.btnPClose);
+
+                close.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
                         dialog.dismiss();
                     }
                 });
-                dialog.findViewById(R.id.btnPDirections).setOnClickListener(new View.OnClickListener() {
+                popup.findViewById(R.id.btnPDirections).setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
                         GetAndDisplayRoute();
                         dialog.dismiss();
                     }
                 });
-                dialog.findViewById(R.id.btnPAddFav).setOnClickListener(new View.OnClickListener() {
+                popup.findViewById(R.id.btnPAddFav).setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
                         LandmarksModel landmarksModel = new LandmarksModel(marker.getTitle(), findViewById(R.id.popup_locationAddress).toString(), destLatLng);
@@ -323,6 +339,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         });
     }
     public void GetAndDisplayRoute(){
+        mMap.clear();
+        DisplayCurLocation();
+
         FirebaseUser firebaseUser = mAuth.getCurrentUser();
         DatabaseReference reference = FirebaseDatabase.getInstance().getReference("Users");
         reference.child(firebaseUser.getUid()).child("measurementPref");
@@ -447,7 +466,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             }
         }
-
-
     }
+
 }
