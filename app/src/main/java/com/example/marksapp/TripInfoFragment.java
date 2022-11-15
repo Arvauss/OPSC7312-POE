@@ -1,13 +1,19 @@
 package com.example.marksapp;
 
+import static com.example.marksapp.MapsActivity.lat;
+import static com.example.marksapp.MapsActivity.lng;
+
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,7 +25,13 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.firebase.FirebaseApp;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.maps.model.PlacesSearchResult;
 
 import java.util.Map;
 
@@ -33,7 +45,8 @@ public class TripInfoFragment extends Fragment {
 
     TextView dur, dist;
     Button btnCancel, btnComplete;
-
+    long distance = 0, totalTraveled = 0;
+    public static PlacesSearchResult[] nearbyPlaces;
     // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
@@ -79,8 +92,10 @@ public class TripInfoFragment extends Fragment {
         Bundle bundle = this.getArguments();
 
         if (this.getArguments() != null){
+            distance = bundle.getLong("Meters");
             dist.setText(bundle.getString("Distance"));
             dur.setText(bundle.getString("Duration"));
+            totalTraveled = bundle.getLong("TotalDistance");
         }
 
 
@@ -96,14 +111,21 @@ public class TripInfoFragment extends Fragment {
             @Override
             public void onClick(View view) {
                 MapsActivity.mMap.clear();
-                LatLng curLoc = new LatLng(MapsActivity.lat,MapsActivity.lng);
+                GetNearbyPlaces();
+                LatLng curLoc = new LatLng(lat, lng);
                 MapsActivity.mMap.addMarker(new MarkerOptions().position(curLoc).title("Current Location").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)).snippet("Current Location"));
-
                 MapsActivity.mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(curLoc, 14.0f));
                 dist.setText("--");
                 dur.setText("--:--");
 
+                FirebaseAuth mAuth  = FirebaseAuth.getInstance();
+                DatabaseReference dbRef = FirebaseDatabase.getInstance().getReference("Users");
 
+                totalTraveled = totalTraveled + distance;
+                MapsActivity.mMode = 0;
+                dbRef.child(mAuth.getUid()).child("totalTravelDistance").setValue(totalTraveled);
+
+                removeSelf();
 
             }
         });
@@ -112,19 +134,57 @@ public class TripInfoFragment extends Fragment {
             @Override
             public void onClick(View view) {
                 MapsActivity.mMap.clear();
-                LatLng curLoc = new LatLng(MapsActivity.lat,MapsActivity.lng);
+                GetNearbyPlaces();
+                LatLng curLoc = new LatLng(lat, lng);
                 MapsActivity.mMap.addMarker(new MarkerOptions().position(curLoc).title("Current Location").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)).snippet("Current Location"));
 
                 MapsActivity.mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(curLoc, 14.0f));
                 dist.setText("--");
                 dur.setText("--:--");
 
-                Intent GoToMap = new Intent(getContext(), MapsActivity.class);
-                startActivity(GoToMap);
+                removeSelf();
 
             }
         });
 
 
     }
+
+    public void removeSelf(){
+        getActivity().getSupportFragmentManager().beginTransaction().remove(this).commit();
+    }
+
+    public void GetNearbyPlaces(){
+        NearbyPlacesTask task = new NearbyPlacesTask();
+        task.execute(new LatLng(lat, lng));
+    }
+
+    class NearbyPlacesTask extends AsyncTask<LatLng, Void, Void> {
+        //Code to obtain list of nearby landmarks (evan, 2020) https://stackoverflow.com/questions/59922561/how-to-find-nearby-places-using-new-places-sdk-for-android
+        @Override
+        protected Void doInBackground(LatLng... latlngs) {
+            //  LocationManager lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+            nearbyPlaces = new NearbySearch().searchResponse(lat, lng).results;
+            Log.d("123456", "doInBackground: " + lat + lng);
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void p) {
+            super.onPostExecute(p);
+            Log.d("123456", "onPostExecute: null places");
+            if (nearbyPlaces != null) {
+                for (PlacesSearchResult place : nearbyPlaces) {
+                    MapsActivity.mMap.addMarker(new MarkerOptions().position(new LatLng(place.geometry.location.lat, place.geometry.location.lng)).title(place.name));
+                    Log.d("123456", "onPostExecute: " + place.name);
+                }
+            }
+            for (PlacesSearchResult place : nearbyPlaces) {
+                Marker m = MapsActivity.mMap.addMarker(new MarkerOptions().position(new LatLng(place.geometry.location.lat, place.geometry.location.lng)).title(place.name));
+
+
+            }
+        }
+    }
+
 }

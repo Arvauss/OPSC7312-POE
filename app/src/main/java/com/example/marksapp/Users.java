@@ -19,15 +19,15 @@ public class Users {
 
     private PlaceType prefType;
 
-    private double TotalTravelDistance;
+    private long totalTravelDistance;
 
     public Users(){
 
     }
 
-    public Users(Unit userMeasurement, double userTotalDistance, PlaceType pref){
+    public Users(Unit userMeasurement, long userTotalDistance, PlaceType pref){
         this.MeasurementPref = userMeasurement;
-        this.TotalTravelDistance = userTotalDistance;
+        this.totalTravelDistance = userTotalDistance;
         this.prefType = pref;
         this.SavedLandmarks.add(new LandmarksModel());
 
@@ -43,7 +43,7 @@ public class Users {
     }
 
     public void updateTravelDistance(double distanceTraveled){
-        TotalTravelDistance += distanceTraveled;
+        totalTravelDistance += distanceTraveled;
     }
 
     public PlaceType getPrefType() {
@@ -54,8 +54,8 @@ public class Users {
         this.prefType = prefType;
     }
 
-    public double getTotalTravelDistance(){
-        return this.TotalTravelDistance;
+    public long getTotalTravelDistance(){
+        return this.totalTravelDistance;
     }
 
     public List<LandmarksModel> getSavedLandmarks() {

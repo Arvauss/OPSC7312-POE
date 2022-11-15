@@ -18,12 +18,14 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.LongDef;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
 import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
@@ -86,9 +88,20 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     public static boolean isGpsEnabled = false;
     public static double lat = 0, lng = 0;
     public static LatLng destLatLng = null;
+    /*  mMode Codes:
+    0 = Empty map
+    1 = Home
+    2 = Work
+    3 = Destination via popup
+    4 = Destination via search
+    Important to prevent unwanted GetAndDisplayRoute display
+    */
     public static int mMode = 0;
     public static PlacesSearchResult[] nearbyPlaces;
     public static String tDistance = "", tDuration = "";
+    public static long tMeters = 0;
+
+    private static Users curU;
 
     ConstraintLayout cl;
 
@@ -104,6 +117,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
 
         mAuth  = FirebaseAuth.getInstance(); //need firebase authentication instance
+        DatabaseReference dbRef = FirebaseDatabase.getInstance().getReference("Users").child(mAuth.getUid());
+
 
         binding = ActivityMapsBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
@@ -129,9 +144,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         mapFragment.getMapAsync(this);
 
 
-        if (mMode != 0){
-            GetAndDisplayRoute();
-        }
+
 
         List<Place.Field> fields = Arrays.asList(Place.Field.ID, Place.Field.ADDRESS, Place.Field.NAME, Place.Field.LAT_LNG);
         AutocompleteSupportFragment destLocat = (AutocompleteSupportFragment) getSupportFragmentManager().findFragmentById(R.id.destLocation);
@@ -150,6 +163,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 destLatLng = destination.getLatLng();
                 // mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(destLatLng, 14.0f));
 
+                mMode = 4;
                 GetAndDisplayRoute();
 
 
@@ -157,7 +171,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         });
         MeasurementSwitch = (SwitchCompat) findViewById(R.id.SwitchID);
-        MeasurementSwitch.setText(MeasurementSwitch.getTextOff());
         MeasurementSwitch.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -189,15 +202,49 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         });
 
+        dbRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                curU = snapshot.getValue(Users.class);
+                MeasurementSwitch.setText(curU.getMeasurementPref().toString());
+                Log.d("1234567", "onDataChange: " + curU.getMeasurementPref());
+                Log.d("1234567", "onDataChange: " + curU.getTotalTravelDistance());
+                if (curU.getMeasurementPref().equals(Unit.METRIC)){
+                    MeasurementSwitch.setChecked(false);
+                } else {
+                    MeasurementSwitch.setChecked(true);
+                }
+
+                if (mMode != 0 && mMode != 4){
+                    GetAndDisplayRoute();
+                }
+
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
 
     }
 
     public void DisplayTripFrag(){
         //Initialises trip info fragment, sends duration & distance to be displayed
-        FragmentManager fragman = getSupportFragmentManager();
+       /* FragmentManager fragman = getSupportFragmentManager();
+        Fragment curFrag = fragman.findFragmentByTag("ftifrag");
+        if (curFrag != null)
+                fragman.beginTransaction().remove(curFrag).commit();*/
         Bundle bundle = new Bundle();
+        bundle.putLong("Meters", tMeters);
         bundle.putString("Duration", tDuration);
         bundle.putString("Distance", tDistance);
+        bundle.putLong("TotalDistance", curU.getTotalTravelDistance());
         TripInfoFragment tif = new TripInfoFragment();
         tif.setArguments(bundle);
             getSupportFragmentManager().beginTransaction()
@@ -218,21 +265,65 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         task.execute(new LatLng(lat, lng));
 
 
-    }
+        mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+            @Override
+            public boolean onMarkerClick(com.google.android.gms.maps.model.Marker marker) {
+                Log.d("123456", "onMarkerClick: in marker");
 
-    @Override
-    protected void onPause(){
-        super.onPause();
+                LayoutInflater factory = LayoutInflater.from(MapsActivity.this);
+                final View popup = factory.inflate(R.layout.popup_menu, null);
+                final AlertDialog dialog = new AlertDialog.Builder(MapsActivity.this).create();
 
-    }
+                TextView name = popup.findViewById(R.id.popup_locationName);
+                TextView address = popup.findViewById(R.id.popup_locationAddress);
+                TextView type = popup.findViewById(R.id.popup_locationType);
+                name.setText(marker.getTitle());
+                address.setText(marker.getPosition().toString());
+                destLatLng = marker.getPosition();
+                Geocoder geocoder = new Geocoder(getApplicationContext(), Locale.getDefault());
+                try {
+                    String add = geocoder.getFromLocation(destLatLng.latitude, destLatLng.longitude, 1).get(0).getAddressLine(0);
+                    address.setText(add);
+                    type.setText(geocoder.getFromLocation(destLatLng.latitude, destLatLng.longitude, 1).get(0).getFeatureName());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
+                popup.setVisibility(View.VISIBLE);
+                dialog.setView(popup);
 
-        if (mMap == null){
-            ((SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map)).getMapAsync(this);
-        }
+                Button close = popup.findViewById(R.id.btnPClose);
+
+                close.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        dialog.dismiss();
+                    }
+                });
+                popup.findViewById(R.id.btnPDirections).setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        mMode = 3;
+                        GetAndDisplayRoute();
+                        dialog.dismiss();
+                    }
+                });
+                popup.findViewById(R.id.btnPAddFav).setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        LandmarksModel landmarksModel = new LandmarksModel(marker.getTitle(), findViewById(R.id.popup_locationAddress).toString(), destLatLng);
+                        // DatabaseReference dbRef = FirebaseDatabase.getInstance().getReference().child("Users").child(mAuth.getUid()).child()
+                        dialog.dismiss();
+                    }
+                });
+                dialog.show();
+
+
+                return true;
+            }
+        });
+
+
     }
 
     @SuppressLint("MissingPermission")
@@ -281,84 +372,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         mMap.addMarker(new MarkerOptions().position(curLoc).title("Current Location").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)).snippet("Current Location"));
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(curLoc, 14.0f));
 
-        mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
-            @Override
-            public boolean onMarkerClick(com.google.android.gms.maps.model.Marker marker) {
-                Log.d("123456", "onMarkerClick: in marker");
 
-                LayoutInflater factory = LayoutInflater.from(MapsActivity.this);
-                final View popup = factory.inflate(R.layout.popup_menu, null);
-                final AlertDialog dialog = new AlertDialog.Builder(MapsActivity.this).create();
-
-                TextView name = popup.findViewById(R.id.popup_locationName);
-                TextView address = popup.findViewById(R.id.popup_locationAddress);
-                TextView type = popup.findViewById(R.id.popup_locationType);
-                name.setText(marker.getTitle());
-                address.setText(marker.getPosition().toString());
-                destLatLng = marker.getPosition();
-                Geocoder geocoder = new Geocoder(getApplicationContext(), Locale.getDefault());
-                try {
-                    String add = geocoder.getFromLocation(destLatLng.latitude, destLatLng.longitude, 1).get(0).getAddressLine(0);
-                    address.setText(add);
-                    type.setText(geocoder.getFromLocation(destLatLng.latitude, destLatLng.longitude, 1).get(0).getFeatureName());
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-
-                popup.setVisibility(View.VISIBLE);
-                dialog.setView(popup);
-
-                Button close = popup.findViewById(R.id.btnPClose);
-
-                close.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        dialog.dismiss();
-                    }
-                });
-                popup.findViewById(R.id.btnPDirections).setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        GetAndDisplayRoute();
-                        dialog.dismiss();
-                    }
-                });
-                popup.findViewById(R.id.btnPAddFav).setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        LandmarksModel landmarksModel = new LandmarksModel(marker.getTitle(), findViewById(R.id.popup_locationAddress).toString(), destLatLng);
-                       // DatabaseReference dbRef = FirebaseDatabase.getInstance().getReference().child("Users").child(mAuth.getUid()).child()
-                        dialog.dismiss();
-                    }
-                });
-                dialog.show();
-
-
-                return true;
-            }
-        });
     }
     public void GetAndDisplayRoute(){
         mMap.clear();
         DisplayCurLocation();
-
-        FirebaseUser firebaseUser = mAuth.getCurrentUser();
-        DatabaseReference reference = FirebaseDatabase.getInstance().getReference("Users");
-        reference.child(firebaseUser.getUid()).child("measurementPref");
-
-        ValueEventListener userListener = new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                //reading user settings from database
-                measurement = snapshot.child(firebaseUser.getUid()).child("measurementPref").getValue(Unit.class);
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-
-            }
-        };
-        reference.addValueEventListener(userListener);
         mMap.addMarker(new MarkerOptions().position(destLatLng).title("Destination").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
 
         //Routing algorithm and directions (xomena, 2017) https://stackoverflow.com/questions/47492459/how-do-i-draw-a-route-along-an-existing-road-between-two-points
@@ -366,7 +384,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         GeoApiContext context = new GeoApiContext.Builder().apiKey("AIzaSyALqIxRQNGQ11cUlmUEf4HY7dfQh6wp_9E").build();
         String startLatLng = lat + "," + lng;
         String destinationLatLng = destLatLng.latitude + "," + destLatLng.longitude;
-        DirectionsApiRequest req = DirectionsApi.getDirections(context, startLatLng, destinationLatLng).units(measurement);
+        DirectionsApiRequest req = DirectionsApi.getDirections(context, startLatLng, destinationLatLng).units(curU.getMeasurementPref());
         try {
             // Distance tripLength = null;
             DirectionsResult res = req.await();
@@ -379,6 +397,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                         //getting trip distance & duration
                         tDistance = leg.distance.humanReadable;
                         tDuration = leg.duration.humanReadable;
+                        tMeters = leg.distance.inMeters;
                         // Duration tripDuration = leg.duration;
                         // Toast.makeText(this, "Total Trip Distance:   " + tripLength.humanReadable + "   Trip Duration:   " + tripDuration.humanReadable , Toast.LENGTH_SHORT).show();
                         if(leg.steps !=null){
