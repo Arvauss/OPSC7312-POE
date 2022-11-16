@@ -18,8 +18,11 @@ import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.util.Log;
 import android.view.View;
+import android.widget.ProgressBar;
 import android.widget.Switch;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -34,6 +37,9 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.maps.model.Unit;
 
+import org.w3c.dom.Text;
+
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -51,7 +57,7 @@ public class MainActivity extends AppCompatActivity {
     FirebaseAuth mAuth;
     DatabaseReference dbRef;
     private Users curU;
-    private List<LandmarksModel> favs;
+    private List<LandmarksModel> favs = new ArrayList<>();
 
 
     @SuppressLint("MissingPermission")
@@ -61,15 +67,36 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        ProgressBar pb = (ProgressBar) findViewById(R.id.levelProgressPB);
+        TextView email = (TextView) findViewById(R.id.mainEmailtxt);
+        TextView level = (TextView) findViewById(R.id.mainLeveltxt);
+        TextView progress = (TextView) findViewById(R.id.mainProgresstxt);
+
         mAuth  = FirebaseAuth.getInstance(); //need firebase authentication instance
         dbRef = FirebaseDatabase.getInstance().getReference();
 
         dbRef.child("Users").child(mAuth.getUid()).addValueEventListener(new ValueEventListener() {
+            @SuppressLint("SetTextI18n")
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 curU = snapshot.getValue(Users.class);
 
-                List<LandmarksModel> favs = curU.getSavedLandmarks();
+               // List<LandmarksModel> favs = new ArrayList<>();
+                for (DataSnapshot ds: snapshot.child("savedLandmarks").getChildren()){
+                    favs.add(ds.getValue(LandmarksModel.class));
+                    Log.d("123456", "onDataChange: " + ds.getValue(LandmarksModel.class).getLmName() );
+                }
+                //favs = curU.getSavedLandmarks();
+                FirebaseUser fu = mAuth.getCurrentUser();
+
+                email.setText(fu.getEmail());
+                level.setText("Level: " +curU.getLevel());
+                Log.d("123456", curU.getTotalTravelDistance() + " / " + curU.getLevelGoal());
+                long perc =  curU.getTotalTravelDistance() * 100 / curU.getLevelGoal();
+                progress.setText(perc + "%");
+
+                pb.setMax((int) curU.getLevelGoal());
+                pb.setProgress((int) curU.getTotalTravelDistance());
 
             }
             @Override
@@ -94,6 +121,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 Intent GoToMap = new Intent(getApplicationContext(), MapsActivity.class);
+
                 startActivity(GoToMap);
             }
         });
@@ -104,8 +132,10 @@ public class MainActivity extends AppCompatActivity {
                 Intent GoToMapHome = new Intent(getApplicationContext(), MapsActivity.class);
                 GoToMapHome.putExtra("DestLat", destLat);
                 GoToMapHome.putExtra("DestLng", destLng);
-                if (destLat == 0 && destLng == 0)
-                    GoToMapHome.putExtra("Mode", 1);
+                GoToMapHome.putExtra("Mode", 1);
+                if (curU.getMeasurementPref() == Unit.METRIC)
+                    GoToMapHome.putExtra("MUnit", 0);
+                else GoToMapHome.putExtra("MUnit", 1);
                 startActivity(GoToMapHome);
             }
         });
@@ -116,8 +146,10 @@ public class MainActivity extends AppCompatActivity {
                 Intent GoToMapWork = new Intent(getApplicationContext(), MapsActivity.class);
                 GoToMapWork.putExtra("DestLat", destLat);
                 GoToMapWork.putExtra("DestLng", destLng);
-                if (destLat == 0 && destLng == 0)
-                    GoToMapWork.putExtra("Mode", 2);
+                GoToMapWork.putExtra("Mode", 2);
+                if (curU.getMeasurementPref() == Unit.METRIC)
+                    GoToMapWork.putExtra("MUnit", 0);
+                else GoToMapWork.putExtra("MUnit", 1);
                 startActivity(GoToMapWork);
             }
         });
@@ -162,14 +194,14 @@ public class MainActivity extends AppCompatActivity {
             loop: for (LandmarksModel lm : favs){
                 switch (code) {
                     case 1:
-                        if (lm.getLmName().equals("Home")){
+                        if (lm.isHome()){
                             destLat = lm.getLmLat();
                             destLng = lm.getLmLng();
                             break loop;
                         }
                         break;
                     case 2:
-                        if (lm.getLmName().equals("Work")){
+                        if (lm.isWork()){
                             destLat = lm.getLmLat();
                             destLng = lm.getLmLng();
                             break loop;

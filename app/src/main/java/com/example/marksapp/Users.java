@@ -8,6 +8,7 @@ import com.google.maps.model.Unit;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
@@ -15,8 +16,9 @@ import java.util.ListIterator;
 public class Users {
     private Unit MeasurementPref;
 
-    private List<LandmarksModel> SavedLandmarks = new ArrayList<>();
-
+  /*  private List<LandmarksModel> SavedLandmarks = new ArrayList<>();
+    private HashMap<String, LandmarksModel> savedLandmarks;
+*/
     private PlaceType prefType;
 
     private long totalTravelDistance;
@@ -33,7 +35,7 @@ public class Users {
         this.MeasurementPref = userMeasurement;
         this.totalTravelDistance = userTotalDistance;
         this.prefType = pref;
-        this.SavedLandmarks.add(new LandmarksModel());
+      //  this.SavedLandmarks.add(new LandmarksModel());
         this.level = 1;
         this.levelGoal = 2000;
 
@@ -64,13 +66,19 @@ public class Users {
         return this.totalTravelDistance;
     }
 
-    public List<LandmarksModel> getSavedLandmarks() {
-        return SavedLandmarks;
-    }
+    /*public HashMap<String, LandmarksModel> getSavedLandmarks() {
+        return savedLandmarks;
+    }*/
 
+    /*public void setSavedLandmarks(HashMap<String, LandmarksModel> savedLandmarks) {
+        this.savedLandmarks = savedLandmarks;
+    }*/
+
+/*
     public void setSavedLandmarks(List<LandmarksModel> savedLandmarks) {
         SavedLandmarks = savedLandmarks;
     }
+*/
 
     public long getLevelGoal() {
         return levelGoal;

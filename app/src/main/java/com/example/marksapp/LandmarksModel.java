@@ -11,6 +11,10 @@ public class LandmarksModel {
 
     private double lmLng;
 
+    private boolean isHome;
+
+    private boolean isWork;
+
     public LandmarksModel(){}
 
     public LandmarksModel(String name, String address, LatLng latlng){
@@ -50,5 +54,21 @@ public class LandmarksModel {
 
     public void setLmLng(double lmLng) {
         this.lmLng = lmLng;
+    }
+
+    public boolean isHome() {
+        return isHome;
+    }
+
+    public void setHome(boolean home) {
+        isHome = home;
+    }
+
+    public boolean isWork() {
+        return isWork;
+    }
+
+    public void setWork(boolean work) {
+        isWork = work;
     }
 }

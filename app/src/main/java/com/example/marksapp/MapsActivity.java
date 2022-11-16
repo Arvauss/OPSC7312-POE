@@ -88,6 +88,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     public static boolean isGpsEnabled = false;
     public static double lat = 0, lng = 0;
     public static LatLng destLatLng = null;
+    public static Unit mUnit = null;
+    public static AutocompleteSupportFragment destLocat;
     /*  mMode Codes:
     0 = Empty map
     1 = Home
@@ -116,12 +118,41 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             Places.initialize(getApplicationContext(), getString(R.string._google_api_key));
         }
 
-        mAuth  = FirebaseAuth.getInstance(); //need firebase authentication instance
-        DatabaseReference dbRef = FirebaseDatabase.getInstance().getReference("Users").child(mAuth.getUid());
-
 
         binding = ActivityMapsBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.map);
+        mapFragment.getMapAsync(this);
+
+
+        mAuth  = FirebaseAuth.getInstance(); //need firebase authentication instance
+        DatabaseReference dbRef = FirebaseDatabase.getInstance().getReference("Users").child(mAuth.getUid());
+        dbRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                curU = snapshot.getValue(Users.class);
+                MeasurementSwitch.setText(curU.getMeasurementPref().toString());
+                Log.d("1234567", "onDataChange: " + curU.getMeasurementPref());
+                Log.d("1234567", "onDataChange: " + curU.getTotalTravelDistance());
+                if (curU.getMeasurementPref().equals(Unit.METRIC)){
+                    MeasurementSwitch.setChecked(false);
+                } else {
+                    MeasurementSwitch.setChecked(true);
+                }
+
+                if (destLatLng != null && mMode != 0){
+                    Log.d("123456", "onDataChange: MapReady Work/Home route displayed");
+                    GetAndDisplayRoute();
+                }
+            }
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
+
 
         cl = findViewById(R.id.popup_menu);
         popup = findViewById(R.id.popid);
@@ -131,6 +162,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             if (!dest.isEmpty()) {
                 destLatLng = new LatLng(dest.getDouble("DestLat"), dest.getDouble("DestLng"));
                 mMode = dest.getInt("Mode");
+                if (dest.getInt("MUnit") == 0) mUnit = Unit.METRIC;
+                else mUnit = Unit.IMPERIAL;
+                Log.d("1234567", "onCreate: " + mMode + "  " + destLatLng.toString());
             } else {
                 destLatLng = null;
             }
@@ -138,16 +172,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             Toast.makeText(this, "No destination yet", Toast.LENGTH_SHORT).show();
         }
 
-        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-                .findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
-
-
-
-
         List<Place.Field> fields = Arrays.asList(Place.Field.ID, Place.Field.ADDRESS, Place.Field.NAME, Place.Field.LAT_LNG);
-        AutocompleteSupportFragment destLocat = (AutocompleteSupportFragment) getSupportFragmentManager().findFragmentById(R.id.destLocation);
+        destLocat = (AutocompleteSupportFragment) getSupportFragmentManager().findFragmentById(R.id.destLocation);
         destLocat.setPlaceFields(fields);
         destLocat.setOnPlaceSelectedListener(new PlaceSelectionListener() {
             @Override
@@ -158,10 +184,19 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             @Override
             public void onPlaceSelected(@NonNull Place place) {
                 mMap.clear();
+                Log.d("12345678", "onPlaceSelected: map cleared");
                 DisplayCurLocation();
                 final Place destination = place;
                 destLatLng = destination.getLatLng();
                 // mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(destLatLng, 14.0f));
+                LandmarksModel lm = new LandmarksModel(destination.getName(), destination.getAddress(), destination.getLatLng());
+                if (mMode == 1){
+                    lm.setHome(true);
+                    dbRef.child("savedLandmarks").child("Home").setValue(lm);
+                } else if (mMode == 2){
+                    lm.setWork(true);
+                    dbRef.child("savedLandmarks").child("Work").setValue(lm);
+                }
 
                 mMode = 4;
                 GetAndDisplayRoute();
@@ -202,44 +237,12 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         });
 
-        dbRef.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                try {
-                    Thread.sleep(100);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                curU = snapshot.getValue(Users.class);
-                MeasurementSwitch.setText(curU.getMeasurementPref().toString());
-                Log.d("1234567", "onDataChange: " + curU.getMeasurementPref());
-                Log.d("1234567", "onDataChange: " + curU.getTotalTravelDistance());
-                if (curU.getMeasurementPref().equals(Unit.METRIC)){
-                    MeasurementSwitch.setChecked(false);
-                } else {
-                    MeasurementSwitch.setChecked(true);
-                }
-
-                if (mMode != 0 && mMode != 4){
-                    GetAndDisplayRoute();
-                }
-
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-
-            }
-        });
 
     }
 
     public void DisplayTripFrag(){
         //Initialises trip info fragment, sends duration & distance to be displayed
-       /* FragmentManager fragman = getSupportFragmentManager();
-        Fragment curFrag = fragman.findFragmentByTag("ftifrag");
-        if (curFrag != null)
-                fragman.beginTransaction().remove(curFrag).commit();*/
+        FragmentManager fragman = getSupportFragmentManager();
         Bundle bundle = new Bundle();
         bundle.putLong("Meters", tMeters);
         bundle.putString("Duration", tDuration);
@@ -249,24 +252,20 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         bundle.putLong("TotalDistance", curU.getTotalTravelDistance());
         TripInfoFragment tif = new TripInfoFragment();
         tif.setArguments(bundle);
-            getSupportFragmentManager().beginTransaction()
+        if (!fragman.isDestroyed()){
+            fragman.beginTransaction()
                     .setReorderingAllowed(true)
-                    .replace(R.id.fragcontainer_id, tif, null). commitNow();
+                    .replace(R.id.fragcontainer_id, tif, null).commit();
+        } else Log.d("1234567", "DisplayTripFrag: fragman destroyed");
+
 
     }
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
+
         LocationManager lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         mMap = googleMap;
-        mMap.clear();
-        GetLocation(mMap);
-
-
-        NearbyPlacesTask task = new NearbyPlacesTask();
-        task.execute(new LatLng(lat, lng));
-
-
         mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
             @Override
             public boolean onMarkerClick(com.google.android.gms.maps.model.Marker marker) {
@@ -314,7 +313,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     @Override
                     public void onClick(View view) {
                         LandmarksModel landmarksModel = new LandmarksModel(marker.getTitle(), findViewById(R.id.popup_locationAddress).toString(), destLatLng);
-                        // DatabaseReference dbRef = FirebaseDatabase.getInstance().getReference().child("Users").child(mAuth.getUid()).child()
+                        DatabaseReference dbRef = FirebaseDatabase.getInstance().getReference().child("Users").child(mAuth.getUid()).child("savedLandmarks").child(landmarksModel.getLmName());
+                        dbRef.setValue(landmarksModel);
                         dialog.dismiss();
                     }
                 });
@@ -324,7 +324,16 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 return true;
             }
         });
-
+        mMap.clear();
+        Log.d("12345678", "onMapReady: map cleared");
+        GetLocation(mMap);
+        /*if (mMode ==1 || mMode == 2){
+            DisplayCurLocation();
+        } else*/
+        if (destLatLng != null){
+            Log.d("12345678", "onDataChange: MapReady Work/Home route displayed");
+            GetAndDisplayRoute();
+        }
 
     }
 
@@ -345,9 +354,13 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     lng = location.getLongitude();
                     // Toast.makeText(MainActivity.this, "Lat: " + lat + "\tLng: " + lng, Toast.LENGTH_SHORT).show();
                     LatLng curLoc = new LatLng(lat, lng);
-                    NearbyPlacesTask task = new NearbyPlacesTask();
-                    task.execute(curLoc);
+                    if (mMode != 1 && mMode != 2){
+                        NearbyPlacesTask task = new NearbyPlacesTask();
+                        task.execute(curLoc);
+
+                    }
                     DisplayCurLocation();
+
 
                 }
                 @Override
@@ -369,7 +382,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
     public void DisplayCurLocation(){
-        mMap.clear();
+        if (mMode != 1 || mMode != 2){
+            mMap.clear();
+        Log.d("12345678", "DisplayCurLocation: map cleared");}
         LatLng curLoc = new LatLng(lat,lng);
         mMap.addMarker(new MarkerOptions().position(curLoc).title("Current Location").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)).snippet("Current Location"));
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(curLoc, 14.0f));
@@ -377,8 +392,14 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     }
     public void GetAndDisplayRoute(){
-        mMap.clear();
+        Log.d("12345678", "GetAndDisplayRoute: called " + destLatLng.toString());
         DisplayCurLocation();
+
+        /*if (mMode == 1){
+            mMap.addMarker(new MarkerOptions().position(destLatLng).title("Home").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_VIOLET)));
+        } else if (mMode == 2){
+            mMap.addMarker(new MarkerOptions().position(destLatLng).title("Work").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
+        } else*/
         mMap.addMarker(new MarkerOptions().position(destLatLng).title("Destination").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
 
         //Routing algorithm and directions (xomena, 2017) https://stackoverflow.com/questions/47492459/how-do-i-draw-a-route-along-an-existing-road-between-two-points
@@ -386,7 +407,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         GeoApiContext context = new GeoApiContext.Builder().apiKey("AIzaSyALqIxRQNGQ11cUlmUEf4HY7dfQh6wp_9E").build();
         String startLatLng = lat + "," + lng;
         String destinationLatLng = destLatLng.latitude + "," + destLatLng.longitude;
-        DirectionsApiRequest req = DirectionsApi.getDirections(context, startLatLng, destinationLatLng).units(curU.getMeasurementPref());
+        DirectionsApiRequest req;
+        if (curU != null)
+            req = DirectionsApi.getDirections(context, startLatLng, destinationLatLng).units(curU.getMeasurementPref());
+        else
+            req = DirectionsApi.getDirections(context, startLatLng, destinationLatLng).units(mUnit);
         try {
             // Distance tripLength = null;
             DirectionsResult res = req.await();
@@ -444,22 +469,21 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             LatLngBounds bounds = b.build();
             Log.d("123456", "onPlaceSelected: " + bounds.toString());
 
-            PolylineOptions opts = new PolylineOptions().addAll(path).color(Color.BLUE).width(10);
-            mMap.addPolyline(opts);
-            mMap.getUiSettings().setZoomControlsEnabled(true);
-            CameraUpdate cU = CameraUpdateFactory.newLatLngBounds(bounds, 25);
-            //  mMap.moveCamera(cU);
-            mMap.animateCamera(cU);
+            if (mMode != 0) {
+                PolylineOptions opts = new PolylineOptions().addAll(path).color(Color.BLUE).width(10);
+                mMap.addPolyline(opts);
+                mMap.getUiSettings().setZoomControlsEnabled(true);
+                CameraUpdate cU = CameraUpdateFactory.newLatLngBounds(bounds, 40);
+                //  mMap.moveCamera(cU);
+                mMap.animateCamera(cU);
 
-            DisplayTripFrag();
+                DisplayTripFrag();
+            }
 
         }
 
 
     }
-
-
-
     //Async task to get list of nearby places, then display them on the map (Android Developers, 2022) https://developer.android.com/reference/android/os/AsyncTask
     class NearbyPlacesTask extends AsyncTask<LatLng, Void, Void> {
         //Code to obtain list of nearby landmarks (evan, 2020) https://stackoverflow.com/questions/59922561/how-to-find-nearby-places-using-new-places-sdk-for-android

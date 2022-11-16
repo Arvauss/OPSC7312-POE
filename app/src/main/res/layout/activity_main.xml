@@ -32,7 +32,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:layout_marginBottom="30dp">
+                android:layout_marginBottom="10dp">
 
                 <ImageView
                     android:layout_width="100dp"
@@ -47,6 +47,7 @@
                     android:orientation="vertical">
 
                     <TextView
+                        android:id="@+id/mainEmailtxt"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_gravity="center"
@@ -55,6 +56,7 @@
                         android:textSize="20dp" />
 
                     <TextView
+                        android:id="@+id/mainLeveltxt"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Prototype@gmail.com"
@@ -68,15 +70,17 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal">
                 <ProgressBar
-                    android:id="@+id/determinateBar"
+                    android:id="@+id/levelProgressPB"
                     style="@android:style/Widget.ProgressBar.Horizontal"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:outlineSpotShadowColor="@color/pc"
                     android:minWidth="300dp"
                     android:maxHeight="1dp"
-                    android:progress="25"/>
+                    android:progress="25"
+                    android:layout_marginBottom="10dp"/>
                 <TextView
+                    android:id="@+id/mainProgresstxt"
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
                     android:textColor="@color/white"

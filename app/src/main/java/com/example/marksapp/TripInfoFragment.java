@@ -117,6 +117,7 @@ public class TripInfoFragment extends Fragment {
             @Override
             public void onClick(View view) {
                 MapsActivity.mMap.clear();
+                MapsActivity.destLocat.setText("");
                 GetNearbyPlaces();
                 LatLng curLoc = new LatLng(lat, lng);
                 MapsActivity.mMap.addMarker(new MarkerOptions().position(curLoc).title("Current Location").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)).snippet("Current Location"));
@@ -150,6 +151,7 @@ public class TripInfoFragment extends Fragment {
             @Override
             public void onClick(View view) {
                 MapsActivity.mMap.clear();
+                MapsActivity.destLocat.setText("");
                 GetNearbyPlaces();
                 LatLng curLoc = new LatLng(lat, lng);
                 MapsActivity.mMap.addMarker(new MarkerOptions().position(curLoc).title("Current Location").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)).snippet("Current Location"));
@@ -158,16 +160,17 @@ public class TripInfoFragment extends Fragment {
                 dist.setText("--");
                 dur.setText("--:--");
 
+                MapsActivity.mMode = 0;
                 removeSelf();
 
             }
         });
 
-
     }
 
     public void removeSelf(){
-        getActivity().getSupportFragmentManager().beginTransaction().remove(this).commit();
+        getActivity().getSupportFragmentManager().beginTransaction().remove(this).commitNow();
+
     }
 
     public void GetNearbyPlaces(){
