@@ -27,6 +27,8 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
@@ -42,10 +44,11 @@ import java.util.Map;
  */
 public class TripInfoFragment extends Fragment {
 
-
+    boolean hasValues = false;
     TextView dur, dist;
     Button btnCancel, btnComplete;
-    long distance = 0, totalTraveled = 0;
+    long distance = 0, totalTraveled = 0, levelGoal = 2000;
+    int level = 1;
     public static PlacesSearchResult[] nearbyPlaces;
     // TODO: Rename and change types of parameters
     private String mParam1;
@@ -96,6 +99,9 @@ public class TripInfoFragment extends Fragment {
             dist.setText(bundle.getString("Distance"));
             dur.setText(bundle.getString("Duration"));
             totalTraveled = bundle.getLong("TotalDistance");
+            levelGoal = bundle.getLong("LGoal");
+            level = bundle.getInt("Level");
+            hasValues = true;
         }
 
 
@@ -121,9 +127,19 @@ public class TripInfoFragment extends Fragment {
                 FirebaseAuth mAuth  = FirebaseAuth.getInstance();
                 DatabaseReference dbRef = FirebaseDatabase.getInstance().getReference("Users");
 
-                totalTraveled = totalTraveled + distance;
+                if (hasValues){
+                    totalTraveled = totalTraveled + distance;
+                    dbRef.child(mAuth.getUid()).child("totalTravelDistance").setValue(totalTraveled);
+                    if (totalTraveled > levelGoal){
+                        while (totalTraveled > levelGoal){
+                            levelGoal *=  1.618034;
+                            level++;
+                        }
+                        dbRef.child(mAuth.getUid()).child("levelGoal").setValue(levelGoal);
+                        dbRef.child(mAuth.getUid()).child("level").setValue(level);
+                    }
+                }
                 MapsActivity.mMode = 0;
-                dbRef.child(mAuth.getUid()).child("totalTravelDistance").setValue(totalTraveled);
 
                 removeSelf();
 

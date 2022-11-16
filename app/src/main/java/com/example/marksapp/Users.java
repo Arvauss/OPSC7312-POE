@@ -21,6 +21,10 @@ public class Users {
 
     private long totalTravelDistance;
 
+    private long levelGoal;
+
+    private int level;
+
     public Users(){
 
     }
@@ -30,6 +34,8 @@ public class Users {
         this.totalTravelDistance = userTotalDistance;
         this.prefType = pref;
         this.SavedLandmarks.add(new LandmarksModel());
+        this.level = 1;
+        this.levelGoal = 2000;
 
     }
 
@@ -64,5 +70,21 @@ public class Users {
 
     public void setSavedLandmarks(List<LandmarksModel> savedLandmarks) {
         SavedLandmarks = savedLandmarks;
+    }
+
+    public long getLevelGoal() {
+        return levelGoal;
+    }
+
+    public void setLevelGoal(long levelGoal) {
+        this.levelGoal = levelGoal;
+    }
+
+    public int getLevel() {
+        return level;
+    }
+
+    public void setLevel(int level) {
+        this.level = level;
     }
 }

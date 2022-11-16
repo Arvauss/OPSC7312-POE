@@ -244,6 +244,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         bundle.putLong("Meters", tMeters);
         bundle.putString("Duration", tDuration);
         bundle.putString("Distance", tDistance);
+        bundle.putLong("LGoal", curU.getLevelGoal());
+        bundle.putInt("Level", curU.getLevel());
         bundle.putLong("TotalDistance", curU.getTotalTravelDistance());
         TripInfoFragment tif = new TripInfoFragment();
         tif.setArguments(bundle);
