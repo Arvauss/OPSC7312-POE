@@ -38,7 +38,7 @@
                     android:layout_width="100dp"
                     android:layout_height="100dp"
                     android:layout_gravity="center"
-                    android:src="@mipmap/logo_cut" />
+                    android:src="@drawable/logo_cut" />
 
                 <LinearLayout
                     android:layout_width="wrap_content"

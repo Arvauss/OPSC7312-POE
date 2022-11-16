@@ -5,7 +5,7 @@
     android:id="@+id/splash"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@mipmap/backdrop"
+    android:background="@drawable/backdrop"
     tools:context=".SplashActivity">
 
 
@@ -21,7 +21,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.457"
-        app:srcCompat="@mipmap/logo_cut" />
+        app:srcCompat="@drawable/logo_cut" />
 
     <TextView
         android:id="@+id/splashName"
