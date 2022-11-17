@@ -1,7 +1,20 @@
 package com.example.marksapp;
 
+import android.Manifest;
+import android.annotation.SuppressLint;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.os.Build;
+import android.os.Bundle;
+import android.view.MenuItem;
+import android.view.View;
+import android.widget.ImageView;
+import android.widget.TextView;
+import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
 import androidx.cardview.widget.CardView;
@@ -9,26 +22,8 @@ import androidx.core.content.ContextCompat;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
-import android.Manifest;
-import android.annotation.SuppressLint;
-import android.content.Context;
-import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
-import android.os.Build;
-import android.os.Bundle;
-import android.provider.Settings;
-import android.view.View;
-import android.widget.ImageView;
-import android.widget.Switch;
-import android.widget.TextView;
-import android.widget.Toast;
-
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
-import com.google.firebase.FirebaseApiNotAvailableException;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -38,13 +33,42 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.maps.model.Unit;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
 public class MainActivity extends AppCompatActivity {
 
+    //Navigation bar
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+    item.setChecked(true);
+
+    switch (item.getItemId()){
+        case R.id.Home:
+            break;
+
+        case R.id.ViewMap:
+            Intent intent = new Intent(getApplicationContext(), MapsActivity.class);
+            startActivity(intent);
+            break;
+
+        case R.id.AllLand:
+            break;
+
+            case R.id.Settings:
+                break;
+
+        case R.id.LogOut:
+            Intent intents = new Intent(getApplicationContext(), LoginActivity.class);
+            startActivity(intents);
+            break;
+    }
+
+        if (actionBarDrawerToggle.onOptionsItemSelected(item)){
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
 
     public static boolean isGranted = false;
 
@@ -55,11 +79,14 @@ public class MainActivity extends AppCompatActivity {
     TextView emailText;
     SwitchCompat MeasurementSwitch;
     DrawerLayout dl;
+    DrawerLayout drawerLayout;
 
     FirebaseAuth mAuth;
     DatabaseReference dbRef;
     private Users curU;
     private List<LandmarksModel> favs;
+    public DrawerLayout drawerlayout;
+    public ActionBarDrawerToggle actionBarDrawerToggle;
 
 
     @SuppressLint("MissingPermission")
@@ -68,6 +95,16 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        //Navigation Bar
+        drawerLayout = findViewById(R.id.drawer_layout);
+        actionBarDrawerToggle = new ActionBarDrawerToggle(this, drawerLayout, R.string.nav_open, R.string.nav_close);
+
+        drawerLayout.addDrawerListener(actionBarDrawerToggle);
+        actionBarDrawerToggle.syncState();
+
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
 
         mAuth  = FirebaseAuth.getInstance(); //need firebase authentication instance
         dbRef = FirebaseDatabase.getInstance().getReference();
@@ -225,5 +262,7 @@ public class MainActivity extends AppCompatActivity {
             default:
                 Toast.makeText(this, "Permissions Not Granted", Toast.LENGTH_SHORT).show();
         }
+
+
     }
 }

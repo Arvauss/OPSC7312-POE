@@ -308,4 +308,11 @@
 
         <include layout="@layout/main_nav_drawer" />
     </RelativeLayout>
+
+    <com.google.android.material.navigation.NavigationView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="start"
+        app:menu="@menu/sidenav"/>
+
 </androidx.drawerlayout.widget.DrawerLayout>
