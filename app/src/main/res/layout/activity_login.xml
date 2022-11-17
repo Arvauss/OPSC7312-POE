@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#e5e6e4"
+    android:background="#e6e6e6"
     android:orientation="vertical"
     tools:context=".LoginActivity">
 
@@ -11,20 +11,15 @@
         android:id="@+id/loginLogo"
         android:layout_width="217dp"
         android:layout_height="200dp"
-        android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true"
+        android:layout_gravity="center"
         android:layout_marginTop="30dp"
-        android:src="@mipmap/logo" />
+        android:src="@drawable/logo" />
 
     <TextView
         android:id="@+id/registerText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/loginLogo"
-        android:layout_alignBottom="@+id/loginLogo"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="4dp"
-        android:layout_marginBottom="-50dp"
+        android:layout_gravity="center"
         android:text="LOGIN"
         android:textColor="@color/black"
         android:textSize="35sp"
@@ -33,13 +28,10 @@
     <EditText
         android:id="@+id/usernameEditTxt"
         android:layout_width="311dp"
+        android:layout_marginTop="80dp"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/registerText"
-        android:layout_alignBottom="@+id/registerText"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="117dp"
-        android:layout_marginBottom="-117dp"
-        android:drawableRight="@drawable/ic_baseline_email_24"
+        android:layout_gravity="center"
+        android:drawableEnd="@drawable/ic_baseline_email_24"
         android:ems="10"
         android:hint="Email" />
 
@@ -47,25 +39,20 @@
         android:id="@+id/passwordEditTxt"
         android:layout_width="311dp"
         android:layout_height="wrap_content"
-        android:layout_alignBottom="@+id/usernameEditTxt"
-        android:layout_centerHorizontal="true"
-        android:layout_marginBottom="-65dp"
+        android:layout_gravity="center"
         android:drawableRight="@drawable/ic_baseline_lock_24"
         android:ems="10"
+        android:layout_marginBottom="80dp"
         android:hint="Password"
         android:inputType="textPassword" />
 
     <Button
+        android:layout_marginBottom="10dp"
         android:id="@+id/loginBtn"
         android:layout_width="250dp"
         android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
-        android:layout_marginLeft="89dp"
-        android:layout_marginTop="5dp"
-        android:layout_marginRight="78dp"
-        android:layout_marginBottom="116dp"
+        android:layout_gravity="center"
+        android:layout_marginTop="10dp"
         android:backgroundTint="@color/black"
         android:text="Login"
         android:textColor="@color/white"
@@ -73,15 +60,9 @@
 
     <TextView
         android:id="@+id/regOption"
-        android:layout_width="85dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentEnd="true"
-        android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
-        android:layout_marginStart="183dp"
-        android:layout_marginEnd="142dp"
-        android:layout_marginBottom="59dp"
+        android:layout_gravity="center"
         android:clickable="true"
         android:minHeight="48dp"
         android:text="Register"
@@ -90,4 +71,4 @@
 
 
 
-</RelativeLayout>
+</LinearLayout>

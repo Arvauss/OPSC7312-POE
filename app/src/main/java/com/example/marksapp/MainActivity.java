@@ -6,6 +6,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
 import androidx.cardview.widget.CardView;
 import androidx.core.content.ContextCompat;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
@@ -19,7 +21,9 @@ import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.Switch;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -37,6 +41,7 @@ import com.google.maps.model.Unit;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -46,7 +51,10 @@ public class MainActivity extends AppCompatActivity {
     private static double destLat = 0, destLng = 0;
 
     CardView MapCard, HomeCard, WorkCard;
+    ImageView MenuIcon;
+    TextView emailText;
     SwitchCompat MeasurementSwitch;
+    DrawerLayout dl;
 
     FirebaseAuth mAuth;
     DatabaseReference dbRef;
@@ -80,11 +88,15 @@ public class MainActivity extends AppCompatActivity {
 
         CheckPermissions();
         InitUI();
+        initializeButtons();
 
     }
 
 
     public void InitUI(){
+        MenuIcon = (ImageView) findViewById(R.id.menuButton);
+        emailText = (TextView) findViewById(R.id.emailText);
+        emailText.setText(Objects.requireNonNull(mAuth.getCurrentUser()).getEmail());
         MapCard = (CardView) findViewById(R.id.Mapcard_id);
         HomeCard = (CardView) findViewById(R.id.Homecard_id);
         WorkCard = (CardView) findViewById(R.id.Workcard_id);
@@ -120,6 +132,7 @@ public class MainActivity extends AppCompatActivity {
                     GoToMapWork.putExtra("Mode", 2);
                 startActivity(GoToMapWork);
             }
+
         });
 
         MeasurementSwitch.setText(MeasurementSwitch.getTextOff());
@@ -155,6 +168,15 @@ public class MainActivity extends AppCompatActivity {
         });
 
 
+    }
+    public void initializeButtons() {
+        dl = findViewById(R.id.drawer_layout);
+        MenuIcon = findViewById(R.id.menuButton);
+        MenuIcon.setOnClickListener(v -> OpenMenu(dl));
+    }
+
+    public void OpenMenu(DrawerLayout drawerLayout) {
+        drawerLayout.openDrawer(GravityCompat.START);
     }
 
     private void GetDestLatLng(int code) {
