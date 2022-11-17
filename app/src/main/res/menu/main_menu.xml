@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:checkableBehavior="single"
+    tools:showIn=''>
+
+    <group >
+        <item android:id="@+id/nav_MainMenu"
+            android:title="MAIN MENU"/>
+        <item android:id="@+id/nav_Map"
+            android:title="OPEN MAP"/>
+    </group>
+
+    <item android:title="Preferences">
+        <menu>
+            <item android:id="@+id/nav_favLmrks"
+                android:title="FAVOURITE LANDMARKS" />
+        </menu>
+    </item>
+
+</menu>
