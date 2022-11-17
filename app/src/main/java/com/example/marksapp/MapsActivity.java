@@ -121,6 +121,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        binding = ActivityMapsBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
+
         // drawer layout instance to toggle the menu icon to open (The IIE, 2022)
         //drawer and back button to close drawer (geeksforgeeks.org, 2022).
         drawerLayout = findViewById(R.id.drawer_layout);
@@ -141,8 +144,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
 
 
-        binding = ActivityMapsBinding.inflate(getLayoutInflater());
-        setContentView(binding.getRoot());
+
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
@@ -555,10 +557,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             startActivity(goMap);
         } else
         if (id == R.id.nav_favLmrks){
-            Intent goFavs = new Intent(this, MainActivity.class);
+            Intent goFavs = new Intent(this, FavLmrks.class);
             startActivity(goFavs);
         }
-
 
         drawerLayout.closeDrawer(GravityCompat.START);
         return true;

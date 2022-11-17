@@ -4,29 +4,13 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:gravity="center_vertical"
-    android:orientation="horizontal"
-    android:padding="10dp"
+    android:padding="2dp"
     android:background="@color/pc"
     >
-
-    <ImageView
-        android:id="@+id/menuButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:clickable="true"
-        android:focusable="true"
-        android:src="@drawable/menu_icon_dark" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:text="Marks"
-        android:gravity="center"
-        android:textColor="#FFFFFF"
-        android:translationX="30dp"
-        android:textSize="20sp"
-        android:textStyle="bold" />
+    <View
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_weight="1"/>
 
     <androidx.appcompat.widget.SwitchCompat
         android:layout_width="wrap_content"
@@ -36,6 +20,7 @@
         android:textOn="Imperial"
         android:textOff="Metric"
         android:id="@+id/SwitchID"
-        android:paddingHorizontal="5dp"
-        android:layout_margin="5dp"/>
+        android:layout_marginHorizontal="10dp"
+
+        android:layout_gravity="right"/>
 </LinearLayout>

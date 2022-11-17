@@ -319,4 +319,5 @@
         android:id="@+id/nav_view"
         app:menu="@menu/main_menu"
         android:layout_gravity="start"/>
+
 </androidx.drawerlayout.widget.DrawerLayout>

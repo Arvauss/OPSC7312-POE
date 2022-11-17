@@ -36,7 +36,9 @@ public class FavLmrkAdapter extends RecyclerView.Adapter<FavLmrkAdapter.ViewHold
     public void onBindViewHolder(@NonNull FavLmrkAdapter.ViewHolder holder, int position) {
         LandmarksModel lm = lmrkList.get(position);
 
-        holder.lmrkName.setText(lm.getLmName());
+        if (lm.isHome())holder.lmrkName.setText("Home - " + lm.getLmName()); else
+        if (lm.isWork())holder.lmrkName.setText("Work - " + lm.getLmName()); else
+            holder.lmrkName.setText(lm.getLmName());
         holder.lmrkAddress.setText(lm.getLmAddress());
     }
 
