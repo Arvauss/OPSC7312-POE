@@ -294,7 +294,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             @Override
             public boolean onMarkerClick(com.google.android.gms.maps.model.Marker marker) {
                 Log.d("123456", "onMarkerClick: in marker");
-
                 LayoutInflater factory = LayoutInflater.from(MapsActivity.this);
                 final View popup = factory.inflate(R.layout.popup_menu, null);
                 final AlertDialog dialog = new AlertDialog.Builder(MapsActivity.this).create();
@@ -313,6 +312,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
+
+                final String sAdd = address.getText().toString();
 
                 popup.setVisibility(View.VISIBLE);
                 dialog.setView(popup);
@@ -336,9 +337,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 popup.findViewById(R.id.btnPAddFav).setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        TextView add = findViewById(R.id.popup_locationAddress);
-                        String ad = add.getText().toString();
-                        LandmarksModel landmarksModel = new LandmarksModel(marker.getTitle(), ad, destLatLng);
+                       // String ad = add.getText().toString();
+                        LandmarksModel landmarksModel = new LandmarksModel(marker.getTitle(), sAdd, destLatLng);
                         DatabaseReference dbRef = FirebaseDatabase.getInstance().getReference().child("Users").child(mAuth.getUid()).child("savedLandmarks").child(landmarksModel.getLmName());
                         dbRef.setValue(landmarksModel);
                         dialog.dismiss();

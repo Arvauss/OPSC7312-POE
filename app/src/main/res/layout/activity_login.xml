@@ -34,6 +34,7 @@
         android:layout_gravity="center"
         android:drawableEnd="@drawable/ic_baseline_email_24"
         android:ems="10"
+        android:textColor="@color/black"
         android:hint="Email" />
 
     <EditText
@@ -43,6 +44,7 @@
         android:layout_gravity="center"
         android:drawableRight="@drawable/ic_baseline_lock_24"
         android:ems="10"
+        android:textColor="@color/black"
         android:layout_marginBottom="80dp"
         android:hint="Password"
         android:inputType="textPassword" />
