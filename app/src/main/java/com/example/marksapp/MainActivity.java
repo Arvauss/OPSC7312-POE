@@ -45,6 +45,8 @@ public class MainActivity extends AppCompatActivity {
 
     switch (item.getItemId()){
         case R.id.Home:
+            Intent intent1 = new Intent(getApplicationContext(), MainActivity.class);
+            startActivity(intent1);
             break;
 
         case R.id.ViewMap:
