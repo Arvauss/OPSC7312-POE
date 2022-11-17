@@ -385,6 +385,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                         task.execute(curLoc);
 
                     }
+
+                    if (mMode == 1 || mMode ==2){
+                        DisplayCurLocation();
+                        GetAndDisplayRoute();
+                    } else
                     DisplayCurLocation();
 
 
@@ -499,7 +504,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 PolylineOptions opts = new PolylineOptions().addAll(path).color(Color.BLUE).width(10);
                 mMap.addPolyline(opts);
                 mMap.getUiSettings().setZoomControlsEnabled(true);
-                CameraUpdate cU = CameraUpdateFactory.newLatLngBounds(bounds, 40);
+                CameraUpdate cU = CameraUpdateFactory.newLatLngBounds(bounds, 200);
                 //  mMap.moveCamera(cU);
                 mMap.animateCamera(cU);
 
