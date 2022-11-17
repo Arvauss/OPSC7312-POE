@@ -334,7 +334,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 popup.findViewById(R.id.btnPAddFav).setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        LandmarksModel landmarksModel = new LandmarksModel(marker.getTitle(), findViewById(R.id.popup_locationAddress).toString(), destLatLng);
+                        TextView add = findViewById(R.id.popup_locationAddress);
+                        String ad = add.getText().toString();
+                        LandmarksModel landmarksModel = new LandmarksModel(marker.getTitle(), ad, destLatLng);
                         DatabaseReference dbRef = FirebaseDatabase.getInstance().getReference().child("Users").child(mAuth.getUid()).child("savedLandmarks").child(landmarksModel.getLmName());
                         dbRef.setValue(landmarksModel);
                         dialog.dismiss();
@@ -541,7 +543,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             return true;
         return super.onOptionsItemSelected(item);
     }
-    public boolean onNavigationItemSelected(@NonNull MenuItem item){
+    private boolean onNavigationItemSelected(@NonNull MenuItem item){
         int id = item.getItemId();
 
         if (id == R.id.nav_MainMenu){

@@ -264,7 +264,7 @@ public class MainActivity extends AppCompatActivity {
             return true;
         return super.onOptionsItemSelected(item);
     }
-    public boolean onNavigationItemSelected(@NonNull MenuItem item){
+    private boolean onNavigationItemSelected(@NonNull MenuItem item){
         int id = item.getItemId();
 
         if (id == R.id.nav_MainMenu){
@@ -276,7 +276,7 @@ public class MainActivity extends AppCompatActivity {
             startActivity(goMap);
         } else
         if (id == R.id.nav_favLmrks){
-            Intent goFavs = new Intent(this, MainActivity.class);
+            Intent goFavs = new Intent(this, FavLmrks.class);
             startActivity(goFavs);
         }
 
