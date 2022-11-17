@@ -17,7 +17,11 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Marks"
         tools:targetApi="31">
-
+        <activity
+            android:name=".FavLmrks"
+            android:exported="false"
+            android:label="@string/title_activity_fav_lmrks"
+            android:theme="@style/Theme.Marks.NoActionBar" />
         <!--
              TODO: Before you run your application, you need a Google Maps API key.
 
@@ -31,28 +35,25 @@
         -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyALqIxRQNGQ11cUlmUEf4HY7dfQh6wp_9E"/>
+            android:value="AIzaSyALqIxRQNGQ11cUlmUEf4HY7dfQh6wp_9E" />
 
         <activity
             android:name=".MapsActivity"
             android:exported="false"
-            android:label="@string/title_activity_maps" />
-        <!-- android:theme="@style/Theme.MarksApp" -->
-        <activity android:name=".MainActivity" >
-        </activity>
-        <activity android:name=".LoginActivity" android:exported="true">
+            android:label="@string/title_activity_maps" /> <!-- android:theme="@style/Theme.MarksApp" -->
+        <activity android:name=".MainActivity"></activity>
+        <activity
+            android:name=".LoginActivity"
+            android:exported="true"
+            android:theme="@style/Theme.LR">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
         <activity android:name=".RegisterActivity" />
-        <activity
-            android:name=".SplashActivity">
-
-        </activity>
+        <activity android:name=".SplashActivity"></activity>
         <activity android:name=".MainActivity2" />
     </application>
 

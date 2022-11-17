@@ -13,6 +13,7 @@ import android.os.Bundle;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -21,10 +22,13 @@ import android.widget.Toast;
 import androidx.annotation.LongDef;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
 import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentManager;
@@ -49,6 +53,7 @@ import com.google.android.libraries.places.api.Places;
 import com.google.android.libraries.places.api.model.Place;
 import com.google.android.libraries.places.widget.AutocompleteSupportFragment;
 import com.google.android.libraries.places.widget.listener.PlaceSelectionListener;
+import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.ChildEventListener;
@@ -78,6 +83,9 @@ import java.util.List;
 import java.util.Locale;
 
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback {
+    public ActionBarDrawerToggle actionBarDrawerToggle;
+    public DrawerLayout drawerLayout;
+    public NavigationView navigationView;
 
     public static GoogleMap mMap;
     private ActivityMapsBinding binding;
@@ -113,6 +121,20 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // drawer layout instance to toggle the menu icon to open (The IIE, 2022)
+        //drawer and back button to close drawer (geeksforgeeks.org, 2022).
+        drawerLayout = findViewById(R.id.drawer_layout);
+        actionBarDrawerToggle = new ActionBarDrawerToggle(this, drawerLayout, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        //Instantiating burgerNavigationView and binding it to view (Pulak, 2017).
+        navigationView = findViewById(R.id.nav_view);
+        //Setting navigation item listener (Pulak, 2017).
+        navigationView.setNavigationItemSelectedListener(this::onNavigationItemSelected);
+        // pass the Open and Close toggle for the drawer layout listener (The IIE, 2022)
+        // to toggle the button (geeksforgeeks.org, 2022).
+        drawerLayout.addDrawerListener(actionBarDrawerToggle);
+        actionBarDrawerToggle.syncState();
+        // to make the Navigation drawer icon always appear on the action bar (geeksforgeeks.org, 2022).
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         if (!Places.isInitialized()){
             Places.initialize(getApplicationContext(), getString(R.string._google_api_key));
@@ -511,6 +533,33 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             }
         }
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        if (actionBarDrawerToggle.onOptionsItemSelected(item))
+            return true;
+        return super.onOptionsItemSelected(item);
+    }
+    public boolean onNavigationItemSelected(@NonNull MenuItem item){
+        int id = item.getItemId();
+
+        if (id == R.id.nav_MainMenu){
+            Intent goMainM = new Intent(this, MainActivity.class);
+            startActivity(goMainM);
+        } else
+        if (id == R.id.nav_Map){
+            Intent goMap = new Intent(this, MapsActivity.class);
+            startActivity(goMap);
+        } else
+        if (id == R.id.nav_favLmrks){
+            Intent goFavs = new Intent(this, MainActivity.class);
+            startActivity(goFavs);
+        }
+
+
+        drawerLayout.closeDrawer(GravityCompat.START);
+        return true;
     }
 
 }
